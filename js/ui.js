@@ -603,13 +603,13 @@ async function handleCreateFolder() {
         
         // 恢復按鈕狀態
         createFolderBtn.disabled = false;
-        createFolderBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>建立資料夾';
+        createFolderBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>建立';
         
     } catch (error) {
         showError(error.message);
         
         // 恢復按鈕狀態
         createFolderBtn.disabled = false;
-        createFolderBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>建立資料夾';
+        createFolderBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>建立';
     }
 }
