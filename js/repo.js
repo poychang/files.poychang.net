@@ -277,9 +277,9 @@ export async function listFiles(subFolder) {
               ref: CONFIG.defaultRepo.branch,
         });
 
-        // 過濾出檔案（排除資料夾）
+        // 過濾出檔案（排除資料夾與 .gitkeep）
         const files = data
-            .filter((item) => item.type === 'file')
+            .filter((item) => item.type === 'file' && item.name !== '.gitkeep')
             .map((file) => ({
                 name: file.name,
                 path: file.path,
