@@ -3,8 +3,9 @@
  * 整合所有模組並初始化應用程式
  */
 
+import { initCore, CONFIG, CUSTOM_EVENTS, DOM_IDS, createLogger } from './core/index.js';
 import { initAuth } from './auth.js';
-import { initRepo, uploadFiles, getCurrentSubFolder } from './repo.js';
+import { initRepo, uploadFiles, getCurrentSubFolder } from './repo/index.js';
 import { 
     initUI, 
     showMessage, 
@@ -19,12 +20,19 @@ import {
     refreshFoldersList,
     getFileInput,
     showUploadConfirmModal
-} from './ui.js';
+} from './ui/index.js';
+
+const logger = createLogger('App');
 
 /**
  * 應用程式初始化
  */
 function initApp() {
+    logger.info('Initializing application...');
+    
+    // 初始化核心層
+    initCore({ logLevel: 'info' });
+    
     // 初始化 UI 模組
     initUI();
 
@@ -44,27 +52,17 @@ function initApp() {
     setupEventListeners();
 
     // 監聽登出事件
-    window.addEventListener('auth:logout', handleLogout);
+    window.addEventListener(CUSTOM_EVENTS.AUTH_LOGOUT, handleLogout);
+    
+    logger.info('Application initialized successfully');
 }
 
 /**
  * 設定事件監聽器
  */
 function setupEventListeners() {
-    // 由 UI 的分類卡片負責切換與載入，移除舊的瀏覽資料夾事件繫結
-
-    // 檔案選擇（透過按鈕或拖曳）
-    const fileInput = getFileInput();
-    if (fileInput) {
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFileUpload(Array.from(e.target.files));
-            }
-        });
-    }
-
-    // 監聽自訂檔案選擇事件（來自拖曳）
-    window.addEventListener('files:selected', (e) => {
+    // 監聽自訂檔案選擇事件(來自 upload.js 的拖曳或按鈕選擇)
+    window.addEventListener(CUSTOM_EVENTS.FILES_SELECTED, (e) => {
         if (e.detail.files.length > 0) {
             handleFileUpload(Array.from(e.detail.files));
         }
@@ -114,7 +112,7 @@ async function performUpload(files) {
             
             // 顯示失敗的檔案
             const failedFiles = results.filter(r => !r.success);
-            console.error('上傳失敗的檔案：', failedFiles);
+            logger.error('上傳失敗的檔案：', failedFiles);
         }
 
         // 重新載入檔案列表
@@ -138,16 +136,17 @@ async function performUpload(files) {
  * 處理認證成功
  */
 async function handleAuthSuccess(user, options = {}) {
+    logger.info('Auth success handler triggered', { auto: options.auto });
     displayUserInfo(user);
-    // 僅在手動登入時顯示成功提示；自動登入（localStorage）不顯示
+    // 僅在手動登入時顯示成功提示;自動登入(localStorage)不顯示
     if (!options.auto) {
-        showSuccess('✅ 登入成功！');
+        showSuccess('✅ 登入成功!');
     }
     
     // 顯示已登入區域
-    const loginSection = document.getElementById('login-section');
-    const authenticatedSection = document.getElementById('authenticated-section');
-    const pageHeader = document.getElementById('page-header');
+    const loginSection = document.getElementById(DOM_IDS.LOGIN_SECTION);
+    const authenticatedSection = document.getElementById(DOM_IDS.AUTHENTICATED_SECTION);
+    const pageHeader = document.getElementById(DOM_IDS.PAGE_HEADER);
     
     if (loginSection) loginSection.classList.add('d-none');
     if (authenticatedSection) authenticatedSection.classList.remove('d-none');
@@ -185,11 +184,11 @@ function handleLogout() {
     clearUserInfo();
     
     // 隱藏已登入區域
-    const loginSection = document.getElementById('login-section');
-    const authenticatedSection = document.getElementById('authenticated-section');
-    const folderManagementView = document.getElementById('folder-management-view');
-    const fileManagementView = document.getElementById('file-management-view');
-    const pageHeader = document.getElementById('page-header');
+    const loginSection = document.getElementById(DOM_IDS.LOGIN_SECTION);
+    const authenticatedSection = document.getElementById(DOM_IDS.AUTHENTICATED_SECTION);
+    const folderManagementView = document.getElementById(DOM_IDS.FOLDER_MANAGEMENT_VIEW);
+    const fileManagementView = document.getElementById(DOM_IDS.FILE_MANAGEMENT_VIEW);
+    const pageHeader = document.getElementById(DOM_IDS.PAGE_HEADER);
     
     if (loginSection) loginSection.classList.remove('d-none');
     if (authenticatedSection) authenticatedSection.classList.add('d-none');
@@ -199,9 +198,9 @@ function handleLogout() {
     if (pageHeader) pageHeader.classList.remove('d-none');
 
     // 清空目前分類顯示
-    const currentFolderNameEl = document.getElementById('current-folder-name');
+    const currentFolderNameEl = document.getElementById(DOM_IDS.CURRENT_FOLDER_NAME);
     if (currentFolderNameEl) currentFolderNameEl.textContent = '';
-    const currentFolderNameHeaderEl = document.getElementById('current-folder-name-header');
+    const currentFolderNameHeaderEl = document.getElementById(DOM_IDS.CURRENT_FOLDER_NAME_HEADER);
     if (currentFolderNameHeaderEl) currentFolderNameHeaderEl.textContent = '';
     
     showSuccess('已登出');

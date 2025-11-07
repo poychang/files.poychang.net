@@ -1,10 +1,19 @@
 import { Octokit } from "https://esm.sh/@octokit/core";
-import { getNavbarLogoutBtn } from './ui.js';
+import { 
+    DOM_IDS, 
+    STORAGE_KEYS, 
+    ERROR_MESSAGES,
+    CUSTOM_EVENTS,
+    emitAuthLogout,
+    createLogger 
+} from './core/index.js';
 
 /**
  * 認證管理模組
  * 使用 Personal Access Token 進行認證（純前端方案）
  */
+
+const logger = createLogger('Auth');
 
 let octokit = null;
 
@@ -21,12 +30,12 @@ let onAuthFail = null;
  * 初始化認證模組
  */
 export function initAuth(config) {
-    loginSection = document.getElementById('login-section');
-    authenticatedSection = document.getElementById('authenticated-section');
-    loginBtn = document.getElementById('login-btn');
-    tokenInput = document.getElementById('token-input');
-    tokenLoginBtn = document.getElementById('token-login-btn');
-    navbarLogoutBtn = getNavbarLogoutBtn();
+    loginSection = document.getElementById(DOM_IDS.LOGIN_SECTION);
+    authenticatedSection = document.getElementById(DOM_IDS.AUTHENTICATED_SECTION);
+    loginBtn = document.getElementById(DOM_IDS.LOGIN_BTN);
+    tokenInput = document.getElementById(DOM_IDS.TOKEN_INPUT);
+    tokenLoginBtn = document.getElementById(DOM_IDS.TOKEN_LOGIN_BTN);
+    navbarLogoutBtn = document.getElementById(DOM_IDS.NAVBAR_LOGOUT_BTN);
 
     // 設定回調
     if (config.onAuthSuccess) onAuthSuccess = config.onAuthSuccess;
@@ -50,19 +59,23 @@ export function initAuth(config) {
 
     // 檢查是否已登入
     checkExistingAuth();
+    
+    logger.info('Auth module initialized');
 }
 
 /**
  * 檢查現有的認證狀態
  */
 async function checkExistingAuth() {
-    const token = localStorage.getItem('github_token');
+    const token = localStorage.getItem(STORAGE_KEYS.GITHUB_TOKEN);
     if (token) {
         try {
             octokit = new Octokit({ auth: token });
             
             // 驗證 token 是否有效
             await octokit.request('GET /user');
+            
+            logger.info('Token validated successfully');
             
             // Token 有效，顯示已登入狀態
             showAuthenticatedState();
@@ -73,7 +86,8 @@ async function checkExistingAuth() {
             }
         } catch (error) {
             // Token 無效，清除並顯示登入按鈕
-            localStorage.removeItem('github_token');
+            logger.warn('Token invalid, clearing authentication');
+            localStorage.removeItem(STORAGE_KEYS.GITHUB_TOKEN);
             octokit = null;
             showLoginState();
         }
@@ -84,7 +98,7 @@ async function checkExistingAuth() {
  * 顯示 Token 輸入框
  */
 function showTokenInput() {
-    const tokenSection = document.getElementById('token-input-section');
+    const tokenSection = document.getElementById(DOM_IDS.TOKEN_INPUT_SECTION);
     tokenSection.classList.remove('d-none');
     loginBtn.classList.add('d-none');
     tokenInput.focus();
@@ -105,6 +119,7 @@ async function loginWithToken() {
 
     try {
         tokenLoginBtn.disabled = true;
+        logger.info('Attempting to authenticate with token');
         
         // 初始化 Octokit
         octokit = new Octokit({ auth: token });
@@ -112,8 +127,10 @@ async function loginWithToken() {
         // 驗證 token 是否有效
         const user = await getUserInfo();
         
+        logger.info('Authentication successful', { user: user.login });
+        
         // Token 有效，儲存並顯示已登入狀態
-        localStorage.setItem('github_token', token);
+        localStorage.setItem(STORAGE_KEYS.GITHUB_TOKEN, token);
         showAuthenticatedState();
         
         if (onAuthSuccess) {
@@ -121,9 +138,10 @@ async function loginWithToken() {
         }
         
     } catch (error) {
+        logger.error('Authentication failed', error);
         octokit = null;
         if (onAuthFail) {
-            onAuthFail('登入失敗：' + error.message + '。請確認 Token 是否正確。');
+            onAuthFail(`${ERROR_MESSAGES.INVALID_TOKEN}。請確認 Token 是否正確。`);
         }
         tokenLoginBtn.disabled = false;
     }
@@ -133,14 +151,14 @@ async function loginWithToken() {
  * 登出
  */
 function logout() {
-    localStorage.removeItem('github_token');
+    logger.info('User logging out');
+    localStorage.removeItem(STORAGE_KEYS.GITHUB_TOKEN);
     octokit = null;
     tokenInput.value = '';
     showLoginState();
     
-    // 觸發登出事件
-    const event = new CustomEvent('auth:logout');
-    window.dispatchEvent(event);
+    // 觸發登出事件 (使用 Core 層事件系統)
+    emitAuthLogout();
 }
 
 /**
@@ -176,8 +194,13 @@ function showLoginState() {
     loginSection.classList.remove('d-none');
     authenticatedSection.classList.add('d-none');
     loginBtn.classList.remove('d-none');
-    document.getElementById('token-input-section').classList.add('d-none');
+    document.getElementById(DOM_IDS.TOKEN_INPUT_SECTION).classList.add('d-none');
     tokenLoginBtn.disabled = false;
+    
+    // 隱藏導航列登出按鈕
+    if (navbarLogoutBtn) {
+        navbarLogoutBtn.classList.add('d-none');
+    }
 }
 
 /**
@@ -186,4 +209,9 @@ function showLoginState() {
 function showAuthenticatedState() {
     loginSection.classList.add('d-none');
     authenticatedSection.classList.remove('d-none');
+    
+    // 顯示導航列登出按鈕
+    if (navbarLogoutBtn) {
+        navbarLogoutBtn.classList.remove('d-none');
+    }
 }

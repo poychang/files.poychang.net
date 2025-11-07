@@ -1,4 +1,4 @@
-# GitHub Pages 檔案託管服務
+# 檔案託管服務
 
 這是一個使用 GitHub Pages 來託管檔案的單頁應用程式（SPA），提供簡潔美觀的介面來管理和分享你的檔案。
 
@@ -28,7 +28,7 @@
 
 ### 2. 設定專案
 
-在 `config.js` 中設定你的 GitHub 儲存庫資訊：
+在 `js/core/config.js` 中設定你的 GitHub 儲存庫資訊：
 
 ```javascript
 const CONFIG = {
@@ -49,6 +49,8 @@ const CONFIG = {
     githubPagesBaseUrl: 'https://files.poychang.net'
 };
 ```
+
+> **注意**：根目錄的 `config.js` 已棄用，請改用 `js/core/config.js`。
 
 ### 3. 啟用 GitHub Pages
 
@@ -75,20 +77,90 @@ const CONFIG = {
 ```
 files.poychang.net/
 ├── index.html          # 主頁面（含上傳確認和刪除分類 Modal）
-├── config.js           # 設定檔（儲存庫、路徑、預設分類）
-├── README.md           # 說明文件
+├── config.js           # 全域設定檔（即將棄用，請使用 js/core/config.js）
+├── README.md           # 專案說明文件
 ├── css/
 │   └── styles.css      # 自訂樣式（含主題切換、Modal、Footer 等）
 ├── js/
-│   ├── app.js          # 主應用程式邏輯（檔案上傳流程）
-│   ├── auth.js         # 認證管理（Personal Access Token）
-│   ├── repo.js         # GitHub API 操作（上傳、刪除、列表、分類管理）
-│   └── ui.js           # UI 管理（Modal、Toast、主題切換、分類卡片、分類過濾）
+│   ├── app.js          # 應用程式主入口（整合所有模組）
+│   ├── auth.js         # 認證管理模組（Personal Access Token）
+│   ├── core/           # 核心層（Core Layer）
+│   │   ├── config.js       # 設定管理（儲存庫、路徑、預設分類）
+│   │   ├── constants.js    # 常數定義（DOM ID、事件名稱、儲存鍵值）
+│   │   ├── event-bus.js    # 事件匯流排（跨模組事件通訊）
+│   │   ├── logger.js       # 日誌系統（分級記錄、模組化輸出）
+│   │   └── index.js        # 核心層統一匯出
+│   ├── repo/           # 儲存庫層（Repository Layer）
+│   │   ├── github-api.js       # GitHub API 基礎操作
+│   │   ├── file-operations.js  # 檔案操作（上傳、刪除、列表）
+│   │   ├── folder-operations.js # 資料夾操作（建立、刪除、列表）
+│   │   ├── utils.js            # 工具函數（路徑處理、內容編碼）
+│   │   └── index.js            # 儲存庫層統一匯出
+│   └── ui/             # UI 層（User Interface Layer）
+│       ├── theme.js            # 主題管理（亮色/暗色切換）
+│       ├── toast.js            # Toast 通知系統
+│       ├── modal.js            # Modal 對話框管理
+│       ├── navbar.js           # 導航列管理
+│       ├── views.js            # 視圖切換（分類/檔案視圖）
+│       ├── folders.js          # 資料夾列表管理
+│       ├── folder-filter.js    # 資料夾過濾功能
+│       ├── files.js            # 檔案列表管理
+│       ├── upload.js           # 檔案上傳介面
+│       ├── loading.js          # 載入狀態管理
+│       ├── progress.js         # 進度條管理
+│       └── index.js            # UI 層統一匯出
 └── storage/            # 上傳的檔案會儲存在這裡（可在 config.js 設定）
     ├── default/        # 預設分類資料夾
     ├── images/         # 圖片分類（範例）
     └── ...             # 其他自訂分類
 ```
+
+## 🏗️ 架構設計
+
+本專案採用**三層模組化架構**，清晰分離職責，提升程式碼的可維護性與可擴展性。
+
+### Core Layer（核心層）
+
+提供所有模組共用的基礎功能：
+
+- **config.js** - 集中管理應用程式設定（儲存庫資訊、路徑、預設值）
+- **constants.js** - 定義所有常數（37 個 DOM ID 常數、事件名稱、儲存鍵值）
+- **event-bus.js** - 發布/訂閱事件系統，實現跨模組解耦通訊
+- **logger.js** - 四級日誌系統（DEBUG、INFO、WARN、ERROR），支援模組化輸出
+
+### Repository Layer（儲存庫層）
+
+封裝所有 GitHub API 操作邏輯：
+
+- **github-api.js** - Octokit 實例管理、API 基礎操作、錯誤處理
+- **file-operations.js** - 檔案 CRUD 操作（上傳、刪除、列表、取得內容）
+- **folder-operations.js** - 資料夾管理（建立、刪除、列表、遞迴操作）
+- **utils.js** - 工具函數（路徑處理、Base64 編碼、陣列分批）
+
+### UI Layer（使用者介面層）
+
+管理所有前端 UI 互動與顯示：
+
+- **theme.js** - 主題切換功能（亮色/暗色模式）
+- **toast.js** - Toast 通知（成功/錯誤/警告/資訊）
+- **modal.js** - Modal 對話框（上傳確認、刪除確認）
+- **navbar.js** - 導航列（使用者資訊顯示/清除）
+- **views.js** - 視圖切換（分類管理/檔案管理視圖）
+- **folders.js** - 資料夾列表（顯示、建立、刪除、選擇）
+- **folder-filter.js** - 資料夾即時過濾與搜尋
+- **files.js** - 檔案列表（顯示、刪除、複製連結）
+- **upload.js** - 檔案上傳（拖放、選擇、進度顯示）
+- **loading.js** - 按鈕載入狀態管理
+- **progress.js** - 上傳進度條管理
+
+### 架構優勢
+
+✅ **職責分離** - 每個模組專注於單一職責  
+✅ **解耦設計** - 使用事件匯流排實現跨模組通訊  
+✅ **集中管理** - 所有 DOM ID、事件名稱、設定統一管理  
+✅ **易於測試** - 模組化設計便於單元測試  
+✅ **可擴展性** - 新增功能只需添加新模組，不影響現有程式碼  
+✅ **可維護性** - 清晰的目錄結構與命名規範  
 
 ## 🔧 技術架構
 
@@ -97,6 +169,8 @@ files.poychang.net/
 - **圖示**：Bootstrap Icons
 - **GitHub API**：Octokit (透過 CDN 引入)
 - **主題系統**：CSS 變數 + localStorage 持久化
+- **事件系統**：自訂事件匯流排（發布/訂閱模式）
+- **日誌系統**：四級分級日誌（DEBUG、INFO、WARN、ERROR）
 - **託管**：GitHub Pages
 - **認證方式**：GitHub Personal Access Token
 
@@ -168,6 +242,57 @@ https://files.poychang.net/storage/default/photo.jpg
 - **Toast 通知**：操作成功/失敗會在右上角顯示 Toast 提示
 - **固定導航列**：頂部導航列和底部 Footer 固定顯示
 - **主題適配**：所有元件（包含 Modal、Toast、Footer）皆支援亮色/暗色主題
+
+## 👨‍💻 開發指南
+
+### 程式碼規範
+
+1. **模組化原則**：每個功能獨立成模組，避免單一檔案過大
+2. **常數管理**：所有 DOM ID 必須定義在 `core/constants.js` 的 `DOM_IDS` 物件中
+3. **事件通訊**：跨模組通訊使用事件匯流排，避免直接相依
+4. **日誌記錄**：使用 `logger` 模組記錄關鍵操作，不直接使用 `console.log`
+5. **錯誤處理**：使用 try-catch 捕捉錯誤，並透過 `logger.error` 記錄
+
+### 添加新功能
+
+**範例：添加新的 UI 元件**
+
+1. 在 `js/ui/` 建立新模組檔案（例如：`new-feature.js`）
+2. 在 `core/constants.js` 添加所需的 DOM ID 常數
+3. 實作模組功能，匯出公開 API
+4. 在 `js/ui/index.js` 中匯入並重新匯出
+5. 在 `js/app.js` 中初始化新模組
+
+```javascript
+// js/ui/new-feature.js
+import { DOM_IDS } from '../core/index.js';
+import { logger } from '../core/index.js';
+
+export function init() {
+    logger.info('NewFeature', '初始化新功能');
+    // 實作邏輯
+}
+
+export function doSomething() {
+    const element = document.getElementById(DOM_IDS.YOUR_NEW_ELEMENT);
+    // 操作邏輯
+}
+```
+
+### 程式碼品質
+
+- ✅ **零硬編碼 DOM ID**：所有 DOM ID 皆透過 `DOM_IDS` 常數引用
+- ✅ **零 console.log**：統一使用 `logger` 模組記錄日誌
+- ✅ **完整 JSDoc 註解**：所有函數皆有清晰的文檔註解
+- ✅ **錯誤處理完整**：關鍵操作皆有 try-catch 與錯誤日誌
+- ✅ **事件解耦**：模組間透過事件匯流排通訊
+
+### 除錯技巧
+
+1. **啟用詳細日誌**：開啟瀏覽器開發者工具查看 logger 輸出
+2. **事件追蹤**：在 `core/event-bus.js` 中查看事件流向
+3. **DOM 檢查**：透過 `DOM_IDS` 常數確認元素 ID 是否正確
+4. **API 測試**：使用 `repo/github-api.js` 的測試函數驗證 API 操作
 
 ## 🤝 貢獻
 
