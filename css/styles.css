@@ -158,6 +158,20 @@ body {
     word-break: break-word;
 }
 
+/* 已選取的分類卡片高亮 */
+.folder-card.selected {
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.folder-card.selected i {
+    color: #0d6efd !important;
+}
+
+.folder-card.selected .card-title {
+    color: #0d6efd;
+}
+
 /* 文字顏色 */
 .text-muted {
     color: var(--text-secondary) !important;

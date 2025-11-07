@@ -3,7 +3,16 @@
  * 處理使用者介面相關操作
  */
 
-import { listFiles, listSubFolders, createSubFolder, deleteFile, getFileIcon, formatFileSize, getCurrentSubFolder, setCurrentSubFolder } from './repo.js';
+import {
+    listFiles,
+    listSubFolders,
+    createSubFolder,
+    deleteFile,
+    getFileIcon,
+    formatFileSize,
+    getCurrentSubFolder,
+    setCurrentSubFolder,
+} from './repo.js';
 
 let messageToast, toastInstance;
 let toastIcon, toastMessage;
@@ -22,27 +31,27 @@ export function initUI() {
     messageToast = document.getElementById('message-toast');
     toastIcon = document.getElementById('toast-icon');
     toastMessage = document.getElementById('toast-message');
-    
+
     // 初始化 Bootstrap Toast
     if (messageToast) {
         toastInstance = new bootstrap.Toast(messageToast, {
             autohide: true,
-            delay: 4000
+            delay: 4000,
         });
     }
-    
+
     navbarUserInfo = document.getElementById('navbar-user-info');
     navbarUserAvatar = document.getElementById('navbar-user-avatar');
     navbarUserName = document.getElementById('navbar-user-name');
     navbarUserLogin = document.getElementById('navbar-user-login');
     navbarLogoutBtn = document.getElementById('navbar-logout-btn');
-    
+
     themeToggleBtn = document.getElementById('theme-toggle-btn');
     themeIcon = document.getElementById('theme-icon');
-    
+
     foldersGrid = document.getElementById('folders-grid');
     refreshFoldersBtn = document.getElementById('refresh-folders-btn');
-    
+
     newFolderInput = document.getElementById('new-folder-input');
     createFolderBtn = document.getElementById('create-folder-btn');
     dropZone = document.getElementById('drop-zone');
@@ -59,7 +68,7 @@ export function initUI() {
     if (createFolderBtn) {
         createFolderBtn.addEventListener('click', handleCreateFolder);
     }
-    
+
     // 支援 Enter 鍵建立資料夾
     if (newFolderInput) {
         newFolderInput.addEventListener('keypress', (e) => {
@@ -79,12 +88,12 @@ export function initUI() {
     if (refreshFilesBtn) {
         refreshFilesBtn.addEventListener('click', refreshFileList);
     }
-    
+
     // 重新整理資料夾按鈕
     if (refreshFoldersBtn) {
         refreshFoldersBtn.addEventListener('click', refreshFoldersList);
     }
-    
+
     // 初始化主題切換
     initThemeToggle();
 }
@@ -96,7 +105,7 @@ function initThemeToggle() {
     // 從 localStorage 讀取主題設定
     const savedTheme = localStorage.getItem('theme') || 'light';
     setTheme(savedTheme);
-    
+
     // 綁定主題切換按鈕
     if (themeToggleBtn) {
         themeToggleBtn.addEventListener('click', toggleTheme);
@@ -118,7 +127,7 @@ function toggleTheme() {
 function setTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
-    
+
     // 更新圖示
     if (themeIcon) {
         if (theme === 'dark') {
@@ -134,27 +143,35 @@ function setTheme(theme) {
  */
 function setupDragAndDrop() {
     // 防止預設拖曳行為
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
         dropZone.addEventListener(eventName, preventDefaults, false);
         document.body.addEventListener(eventName, preventDefaults, false);
     });
 
     // 拖曳效果
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => {
-            dropZone.classList.add('drag-over');
-        }, false);
+    ['dragenter', 'dragover'].forEach((eventName) => {
+        dropZone.addEventListener(
+            eventName,
+            () => {
+                dropZone.classList.add('drag-over');
+            },
+            false
+        );
     });
 
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, () => {
-            dropZone.classList.remove('drag-over');
-        }, false);
+    ['dragleave', 'drop'].forEach((eventName) => {
+        dropZone.addEventListener(
+            eventName,
+            () => {
+                dropZone.classList.remove('drag-over');
+            },
+            false
+        );
     });
 
     // 處理拖放
     dropZone.addEventListener('drop', handleDrop, false);
-    
+
     // 點擊整個 drop zone 來選擇檔案
     dropZone.addEventListener('click', (e) => {
         if (e.target !== selectFilesBtn && !selectFilesBtn.contains(e.target)) {
@@ -171,7 +188,7 @@ function preventDefaults(e) {
 function handleDrop(e) {
     const dt = e.dataTransfer;
     const files = dt.files;
-    
+
     // 觸發檔案上傳事件
     const event = new CustomEvent('files:selected', { detail: { files } });
     window.dispatchEvent(event);
@@ -182,30 +199,30 @@ function handleDrop(e) {
  */
 export function showMessage(message, type = 'danger') {
     if (!messageToast || !toastIcon || !toastMessage || !toastInstance) return;
-    
+
     // 設定圖示和顏色
     const iconMap = {
-        'success': 'bi-check-circle-fill',
-        'danger': 'bi-exclamation-triangle-fill',
-        'info': 'bi-info-circle-fill',
-        'warning': 'bi-exclamation-circle-fill'
+        success: 'bi-check-circle-fill',
+        danger: 'bi-exclamation-triangle-fill',
+        info: 'bi-info-circle-fill',
+        warning: 'bi-exclamation-circle-fill',
     };
-    
+
     const bgMap = {
-        'success': 'bg-success',
-        'danger': 'bg-danger',
-        'info': 'bg-info',
-        'warning': 'bg-warning'
+        success: 'bg-success',
+        danger: 'bg-danger',
+        info: 'bg-info',
+        warning: 'bg-warning',
     };
-    
+
     // 移除舊的背景色
     messageToast.classList.remove('bg-success', 'bg-danger', 'bg-info', 'bg-warning');
-    
+
     // 設定新的樣式
     messageToast.classList.add(bgMap[type] || 'bg-info');
     toastIcon.className = `bi ${iconMap[type] || 'bi-info-circle-fill'} me-2`;
     toastMessage.textContent = message;
-    
+
     // 顯示 toast
     toastInstance.show();
 }
@@ -262,7 +279,7 @@ export function clearUserInfo() {
  */
 export function showUploadProgress(progress) {
     if (!uploadProgress || !progressBar || !uploadStatus) return;
-    
+
     uploadProgress.classList.remove('d-none');
     progressBar.style.width = `${progress.percentage}%`;
     progressBar.textContent = `${progress.percentage}%`;
@@ -274,7 +291,7 @@ export function showUploadProgress(progress) {
  */
 export function hideUploadProgress() {
     if (!uploadProgress) return;
-    
+
     setTimeout(() => {
         uploadProgress.classList.add('d-none');
         if (progressBar) {
@@ -307,10 +324,9 @@ export function showLoading(container, message = '載入中...') {
 export async function refreshFileList() {
     try {
         showLoading(fileListContainer, '載入檔案列表...');
-        
+
         const files = await listFiles();
         displayFileList(files);
-        
     } catch (error) {
         showError(error.message);
         fileListContainer.innerHTML = `
@@ -328,19 +344,18 @@ export async function refreshFileList() {
 export async function refreshFoldersList() {
     try {
         if (!foldersGrid) return;
-        
+
         foldersGrid.innerHTML = `
             <div class="col-12 text-center text-muted py-4">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">載入中...</span>
                 </div>
-                <p class="mt-2">載入資料夾列表...</p>
+                <p class="mt-2">載入分類列表...</p>
             </div>
         `;
-        
+
         const folders = await listSubFolders();
         displayFoldersList(folders);
-        
     } catch (error) {
         showError(error.message);
         foldersGrid.innerHTML = `
@@ -357,30 +372,36 @@ export async function refreshFoldersList() {
  */
 export function displayFoldersList(folders) {
     if (!foldersGrid) return;
-    
+
     if (folders.length === 0) {
         foldersGrid.innerHTML = `
             <div class="col-12 text-center text-muted py-4">
                 <i class="bi bi-folder-x display-4"></i>
-                <p class="mt-3">目前沒有任何資料夾</p>
-                <p class="small">建立一個新資料夾來開始使用</p>
+                <p class="mt-3">目前沒有任何分類</p>
+                <p class="small">建立一個新分類來開始使用</p>
             </div>
         `;
         return;
     }
-    
+
     // 按字母順序排序（根據 name 屬性）
     const sortedFolders = [...folders].sort((a, b) => a.name.localeCompare(b.name));
-    
-    foldersGrid.innerHTML = sortedFolders.map(folder => createFolderCard(folder)).join('');
-    
+
+    foldersGrid.innerHTML = sortedFolders.map((folder) => createFolderCard(folder)).join('');
+
     // 綁定點擊事件
-    foldersGrid.querySelectorAll('.folder-card').forEach(card => {
+    foldersGrid.querySelectorAll('.folder-card').forEach((card) => {
         card.addEventListener('click', () => {
             const folderName = card.dataset.folderName;
             selectFolder(folderName);
         });
     });
+
+    // 依目前選擇高亮顯示
+    const current = getCurrentSubFolder && getCurrentSubFolder();
+    if (current) {
+        updateSelectedFolderCard(current);
+    }
 }
 
 /**
@@ -405,25 +426,42 @@ function createFolderCard(folder) {
 async function selectFolder(folderName) {
     // 設定當前資料夾
     setCurrentSubFolder(folderName);
-    
+
+    // 高亮顯示被選取的分類卡片
+    updateSelectedFolderCard(folderName);
+
     // 更新當前資料夾顯示
     const currentFolderName = document.getElementById('current-folder-name');
     if (currentFolderName) {
         currentFolderName.textContent = folderName;
     }
-    
+
     // 顯示上傳區域
     const uploadSection = document.getElementById('upload-section');
     if (uploadSection) {
         uploadSection.classList.remove('d-none');
     }
-    
-    // 載入該資料夾的檔案列表
-    showInfo(`正在載入資料夾：${folderName}`);
+
+    // 載入該分類的檔案列表
+    showInfo(`正在載入分類：${folderName}`);
     await refreshFileList();
-    
+
     // 滾動到檔案上傳區域
     uploadSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/**
+ * 更新分類卡片的選取狀態
+ */
+function updateSelectedFolderCard(folderName) {
+    if (!foldersGrid) return;
+    foldersGrid.querySelectorAll('.folder-card').forEach((card) => {
+        if (card.dataset.folderName === folderName) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    });
 }
 
 /**
@@ -431,9 +469,9 @@ async function selectFolder(folderName) {
  */
 export function displayFileList(files) {
     if (!fileListContainer || !fileCountBadge) return;
-    
+
     fileCountBadge.textContent = files.length;
-    
+
     if (files.length === 0) {
         fileListContainer.innerHTML = `
             <div class="text-center text-muted py-5">
@@ -444,15 +482,15 @@ export function displayFileList(files) {
         `;
         return;
     }
-    
-    fileListContainer.innerHTML = files.map(file => createFileItem(file)).join('');
-    
+
+    fileListContainer.innerHTML = files.map((file) => createFileItem(file)).join('');
+
     // 綁定複製和刪除按鈕事件
-    fileListContainer.querySelectorAll('.btn-copy-link').forEach(btn => {
+    fileListContainer.querySelectorAll('.btn-copy-link').forEach((btn) => {
         btn.addEventListener('click', () => copyFileLink(btn.dataset.url, btn.dataset.filename));
     });
-    
-    fileListContainer.querySelectorAll('.btn-delete-file').forEach(btn => {
+
+    fileListContainer.querySelectorAll('.btn-delete-file').forEach((btn) => {
         btn.addEventListener('click', () => confirmDeleteFile(btn.dataset.filename, btn.dataset.sha));
     });
 }
@@ -463,14 +501,15 @@ export function displayFileList(files) {
 function createFileItem(file) {
     const iconClass = getFileIcon(file.type);
     const isImage = file.type === 'image';
-    
+
     return `
         <div class="list-group-item file-item">
             <div class="d-flex align-items-center gap-3">
                 <div class="flex-shrink-0">
-                    ${isImage 
-                        ? `<img src="${file.downloadUrl}" class="file-preview-img" alt="${file.name}" loading="lazy">`
-                        : `<i class="${iconClass} file-icon-large"></i>`
+                    ${
+                        isImage
+                            ? `<img src="${file.downloadUrl}" class="file-preview-img" alt="${file.name}" loading="lazy">`
+                            : `<i class="${iconClass} file-icon-large"></i>`
                     }
                 </div>
                 <div class="file-info">
@@ -511,14 +550,14 @@ async function copyFileLink(url, filename) {
         textarea.style.opacity = '0';
         document.body.appendChild(textarea);
         textarea.select();
-        
+
         try {
             document.execCommand('copy');
             showSuccess(`✓ 已複製連結：${filename}`);
         } catch (err) {
             showError('複製失敗，請手動複製');
         }
-        
+
         document.body.removeChild(textarea);
     }
 }
@@ -530,23 +569,22 @@ async function confirmDeleteFile(filename, sha) {
     if (!confirm(`確定要刪除檔案 "${filename}" 嗎？\n\n此操作無法復原。`)) {
         return;
     }
-    
+
     try {
         // 顯示載入狀態
         const deleteBtn = event.target.closest('.btn-delete-file');
         const originalHtml = deleteBtn.innerHTML;
         deleteBtn.disabled = true;
         deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>刪除中...';
-        
+
         await deleteFile(filename, sha);
         showSuccess(`✓ 已刪除檔案：${filename}`);
-        
+
         // 重新載入檔案列表
         await refreshFileList();
-        
     } catch (error) {
         showError(error.message);
-        
+
         // 恢復按鈕狀態
         if (deleteBtn) {
             deleteBtn.disabled = false;
@@ -574,42 +612,41 @@ export function getNavbarLogoutBtn() {
  */
 async function handleCreateFolder() {
     const folderName = newFolderInput.value.trim();
-    
+
     if (!folderName) {
-        showError('請輸入資料夾名稱');
+        showError('請輸入分類名稱');
         return;
     }
-    
-    // 驗證資料夾名稱格式（只允許英數字、底線、連字號）
+
+    // 驗證分類名稱格式（只允許英數字、底線、連字號）
     if (!/^[a-zA-Z0-9_-]+$/.test(folderName)) {
-        showError('資料夾名稱只能包含英數字、底線(_)和連字號(-)');
+        showError('分類名稱只能包含英數字、底線(_)和連字號(-)');
         return;
     }
-    
+
     try {
         // 顯示載入狀態
         const originalHtml = createFolderBtn.innerHTML;
         createFolderBtn.disabled = true;
         createFolderBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>建立中...';
-        
+
         await createSubFolder(folderName);
-        showSuccess(`✓ 已建立資料夾：${folderName}`);
-        
+        showSuccess(`✓ 已建立分類：${folderName}`);
+
         // 清空輸入框
         newFolderInput.value = '';
-        
+
         // 重新載入資料夾列表
         await refreshFoldersList();
-        
+
         // 恢復按鈕狀態
         createFolderBtn.disabled = false;
-        createFolderBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>建立';
-        
+        createFolderBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>建立分類';
     } catch (error) {
         showError(error.message);
-        
+
         // 恢復按鈕狀態
         createFolderBtn.disabled = false;
-        createFolderBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>建立';
+        createFolderBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>建立分類';
     }
 }

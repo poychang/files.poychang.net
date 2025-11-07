@@ -15,7 +15,7 @@ const CONFIG = {
     fileBasePath: 'files',
     
     // 預設子資料夾（可在 UI 中修改）
-    defaultSubFolder: 'images',
+    defaultSubFolder: 'default',
     
     // GitHub Pages URL 基礎路徑
     githubPagesBaseUrl: 'https://poychang.github.io/files.poychang.net'

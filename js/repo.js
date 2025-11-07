@@ -77,7 +77,7 @@ function fileToBase64(file) {
  */
 export async function uploadFile(file, progressCallback) {
     const octokit = getOctokit();
-    
+
     if (!octokit) {
         throw new Error('請先登入 GitHub');
     }
@@ -98,7 +98,7 @@ export async function uploadFile(file, progressCallback) {
                 owner: CONFIG.defaultRepo.owner,
                 repo: CONFIG.defaultRepo.repo,
                 path: path,
-                ref: CONFIG.defaultRepo.branch
+                ref: CONFIG.defaultRepo.branch,
             });
             sha = existingFile.sha; // 如果存在，取得 SHA 以便更新
         } catch (error) {
@@ -113,7 +113,7 @@ export async function uploadFile(file, progressCallback) {
             message: `Upload ${file.name}`,
             content: content,
             branch: CONFIG.defaultRepo.branch,
-            sha: sha // 如果是更新，需要提供 SHA
+            sha: sha, // 如果是更新，需要提供 SHA
         });
 
         if (progressCallback) {
@@ -124,9 +124,8 @@ export async function uploadFile(file, progressCallback) {
             name: file.name,
             path: path,
             url: getFileUrl(file.name),
-            sha: data.content.sha
+            sha: data.content.sha,
         };
-
     } catch (error) {
         console.error('Upload error:', error);
         throw new Error(`上傳失敗：${error.message}`);
@@ -145,13 +144,13 @@ export async function uploadFiles(files, progressCallback) {
         try {
             const result = await uploadFile(file);
             results.push({ success: true, file: file.name, result });
-            
+
             if (progressCallback) {
                 progressCallback({
                     current: i + 1,
                     total: total,
                     percentage: Math.round(((i + 1) / total) * 100),
-                    currentFile: file.name
+                    currentFile: file.name,
                 });
             }
         } catch (error) {
@@ -167,13 +166,13 @@ export async function uploadFiles(files, progressCallback) {
  */
 export async function createSubFolder(folderName) {
     const octokit = getOctokit();
-    
+
     if (!octokit) {
         throw new Error('請先登入 GitHub');
     }
 
     if (!folderName || folderName.trim() === '') {
-        throw new Error('請輸入資料夾名稱');
+        throw new Error('請輸入分類名稱');
     }
 
     // 清理資料夾名稱（移除特殊字元）
@@ -187,10 +186,10 @@ export async function createSubFolder(folderName) {
                 owner: CONFIG.defaultRepo.owner,
                 repo: CONFIG.defaultRepo.repo,
                 path: `${CONFIG.fileBasePath}/${cleanFolderName}`,
-                ref: CONFIG.defaultRepo.branch
+                ref: CONFIG.defaultRepo.branch,
             });
-            // 如果沒有拋出錯誤，表示資料夾已存在
-            throw new Error(`資料夾 "${cleanFolderName}" 已存在`);
+            // 如果沒有拋出錯誤，表示分類已存在
+            throw new Error(`分類 "${cleanFolderName}" 已存在`);
         } catch (error) {
             if (error.status !== 404) {
                 // 如果不是 404 錯誤，表示是其他問題（例如資料夾已存在）
@@ -206,18 +205,17 @@ export async function createSubFolder(folderName) {
             path: gitkeepPath,
             message: `Create folder: ${cleanFolderName}`,
             content: btoa(''), // 空內容的 base64
-            branch: CONFIG.defaultRepo.branch
+            branch: CONFIG.defaultRepo.branch,
         });
 
         if (onFileOperationSuccess) {
-            onFileOperationSuccess(`✓ 成功建立資料夾：${cleanFolderName}`);
+            onFileOperationSuccess(`✓ 成功建立分類：${cleanFolderName}`);
         }
 
         return {
             name: cleanFolderName,
-            path: `${CONFIG.fileBasePath}/${cleanFolderName}`
+            path: `${CONFIG.fileBasePath}/${cleanFolderName}`,
         };
-
     } catch (error) {
         const errorMsg = error.message || `建立資料夾失敗：${error.message}`;
         if (onFileOperationFail) {
@@ -232,7 +230,7 @@ export async function createSubFolder(folderName) {
  */
 export async function listSubFolders() {
     const octokit = getOctokit();
-    
+
     if (!octokit) {
         throw new Error('請先登入 GitHub');
     }
@@ -242,21 +240,20 @@ export async function listSubFolders() {
             owner: CONFIG.defaultRepo.owner,
             repo: CONFIG.defaultRepo.repo,
             path: CONFIG.fileBasePath,
-            ref: CONFIG.defaultRepo.branch
+            ref: CONFIG.defaultRepo.branch,
         });
 
         // 過濾出資料夾並按字母順序排序
         const folders = data
-            .filter(item => item.type === 'dir')
-            .map(folder => ({
+            .filter((item) => item.type === 'dir')
+            .map((folder) => ({
                 name: folder.name,
                 path: folder.path,
-                sha: folder.sha
+                sha: folder.sha,
             }))
             .sort((a, b) => a.name.localeCompare(b.name));
 
         return folders;
-
     } catch (error) {
         if (error.status === 404) {
             // files 資料夾不存在，返回空陣列
@@ -271,7 +268,7 @@ export async function listSubFolders() {
  */
 export async function listFiles(subFolder) {
     const octokit = getOctokit();
-    
+
     if (!octokit) {
         throw new Error('請先登入 GitHub');
     }
@@ -284,22 +281,23 @@ export async function listFiles(subFolder) {
             owner: CONFIG.defaultRepo.owner,
             repo: CONFIG.defaultRepo.repo,
             path: path,
-            ref: CONFIG.defaultRepo.branch
+            ref: CONFIG.defaultRepo.branch,
         });
 
         // 過濾出檔案（排除資料夾）
-        const files = data.filter(item => item.type === 'file').map(file => ({
-            name: file.name,
-            path: file.path,
-            sha: file.sha,
-            size: file.size,
-            url: getFileUrl(file.name),
-            downloadUrl: file.download_url,
-            type: getFileType(file.name)
-        }));
+        const files = data
+            .filter((item) => item.type === 'file')
+            .map((file) => ({
+                name: file.name,
+                path: file.path,
+                sha: file.sha,
+                size: file.size,
+                url: getFileUrl(file.name),
+                downloadUrl: file.download_url,
+                type: getFileType(file.name),
+            }));
 
         return files;
-
     } catch (error) {
         if (error.status === 404) {
             // 資料夾不存在，返回空陣列
@@ -314,7 +312,7 @@ export async function listFiles(subFolder) {
  */
 export async function deleteFile(filename, sha) {
     const octokit = getOctokit();
-    
+
     if (!octokit) {
         throw new Error('請先登入 GitHub');
     }
@@ -328,7 +326,7 @@ export async function deleteFile(filename, sha) {
             path: path,
             message: `Delete ${filename}`,
             sha: sha,
-            branch: CONFIG.defaultRepo.branch
+            branch: CONFIG.defaultRepo.branch,
         });
 
         if (onFileOperationSuccess) {
@@ -336,7 +334,6 @@ export async function deleteFile(filename, sha) {
         }
 
         return true;
-
     } catch (error) {
         const errorMsg = `刪除檔案失敗：${error.message}`;
         if (onFileOperationFail) {
@@ -351,7 +348,7 @@ export async function deleteFile(filename, sha) {
  */
 function getFileType(filename) {
     const ext = filename.split('.').pop().toLowerCase();
-    
+
     const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp', 'ico'];
     const videoExts = ['mp4', 'webm', 'ogg', 'mov', 'avi'];
     const audioExts = ['mp3', 'wav', 'ogg', 'aac', 'm4a'];
@@ -365,7 +362,7 @@ function getFileType(filename) {
     if (documentExts.includes(ext)) return 'document';
     if (codeExts.includes(ext)) return 'code';
     if (archiveExts.includes(ext)) return 'archive';
-    
+
     return 'file';
 }
 
@@ -374,15 +371,15 @@ function getFileType(filename) {
  */
 export function getFileIcon(type) {
     const iconMap = {
-        'image': 'bi-file-image',
-        'video': 'bi-file-play',
-        'audio': 'bi-file-music',
-        'document': 'bi-file-text',
-        'code': 'bi-file-code',
-        'archive': 'bi-file-zip',
-        'file': 'bi-file-earmark'
+        image: 'bi-file-image',
+        video: 'bi-file-play',
+        audio: 'bi-file-music',
+        document: 'bi-file-text',
+        code: 'bi-file-code',
+        archive: 'bi-file-zip',
+        file: 'bi-file-earmark',
     };
-    
+
     return iconMap[type] || 'bi-file-earmark';
 }
 
@@ -391,10 +388,10 @@ export function getFileIcon(type) {
  */
 export function formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
-    
+
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
 }
