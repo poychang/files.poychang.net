@@ -807,3 +807,79 @@ input[type="text"]:focus {
 .link:hover {
     text-decoration: underline;
 }
+
+/* Modal 在 Dark Theme 下的樣式 */
+[data-theme="dark"] .modal-content {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-header {
+    background-color: var(--card-header-bg);
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-title {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal-body {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal-body p {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal-body .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .modal-footer {
+    background-color: var(--bg-card);
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+/* 分類卡片刪除按鈕樣式 */
+.folder-delete-btn {
+    background: transparent !important;
+    border: none !important;
+    color: #dc3545 !important;
+    padding: 0.25rem 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.folder-delete-btn i {
+    color: #dc3545 !important;
+}
+
+.folder-delete-btn:hover {
+    color: #bb2d3b !important;
+    background: rgba(220, 53, 69, 0.1) !important;
+    transform: scale(1.1);
+}
+
+.folder-delete-btn:hover i {
+    color: #bb2d3b !important;
+}
+
+.folder-delete-btn:active {
+    transform: scale(0.95);
+}
+
+[data-theme="dark"] .folder-delete-btn i {
+    color: #ea868f !important;
+}
+
+[data-theme="dark"] .folder-delete-btn:hover {
+    color: #dc3545 !important;
+    background: rgba(220, 53, 69, 0.15) !important;
+}
+
+[data-theme="dark"] .folder-delete-btn:hover i {
+    color: #ff6b7a !important;
+}

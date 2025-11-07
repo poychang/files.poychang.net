@@ -23,6 +23,8 @@ let newFolderInput, createFolderBtn;
 let dropZone, fileInput, selectFilesBtn;
 let uploadProgress, progressBar, uploadStatus;
 let fileListContainer, fileCountBadge, refreshFilesBtn;
+let deleteFolderModal, deleteFolderModalInstance;
+let folderToDeleteName, confirmDeleteFolderBtn;
 
 /**
  * 初始化 UI 模組
@@ -63,6 +65,14 @@ export function initUI() {
     fileListContainer = document.getElementById('file-list');
     fileCountBadge = document.getElementById('file-count-badge');
     refreshFilesBtn = document.getElementById('refresh-files-btn');
+
+    // 初始化刪除分類 Modal
+    deleteFolderModal = document.getElementById('deleteFolderModal');
+    folderToDeleteName = document.getElementById('folder-to-delete-name');
+    confirmDeleteFolderBtn = document.getElementById('confirm-delete-folder-btn');
+    if (deleteFolderModal) {
+        deleteFolderModalInstance = new bootstrap.Modal(deleteFolderModal);
+    }
 
     // 綁定建立資料夾按鈕
     if (createFolderBtn) {
@@ -395,6 +405,15 @@ export function displayFoldersList(folders) {
         });
     });
 
+    // 綁定刪除按鈕事件
+    foldersGrid.querySelectorAll('.folder-delete-btn').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation(); // 防止觸發卡片點擊
+            const folderName = btn.dataset.folderName;
+            showDeleteFolderModal(folderName);
+        });
+    });
+
     // 依目前選擇高亮顯示
     const current = getCurrentSubFolder && getCurrentSubFolder();
     if (current) {
@@ -408,7 +427,13 @@ export function displayFoldersList(folders) {
 function createFolderCard(folder) {
     return `
         <div class="col-sm-6 col-md-4 col-lg-3">
-            <div class="folder-card card h-100 shadow-sm" data-folder-name="${folder.name}" style="cursor: pointer;">
+            <div class="folder-card card h-100 shadow-sm" data-folder-name="${folder.name}" style="cursor: pointer; position: relative;">
+                <button class="btn btn-sm btn-danger folder-delete-btn d-none" 
+                        data-folder-name="${folder.name}"
+                        style="position: absolute; top: 8px; right: 8px; z-index: 10; padding: 0.25rem 0.5rem;"
+                        title="刪除分類">
+                    <i class="bi bi-trash"></i>
+                </button>
                 <div class="card-body text-center d-flex flex-column align-items-center justify-content-center p-4">
                     <i class="folder-icon bi bi-folder text-primary display-4 mb-3"></i>
                     <h6 class="card-title mb-0 fw-bold">${folder.name}</h6>
@@ -455,6 +480,7 @@ function updateSelectedFolderCard(folderName) {
     if (!foldersGrid) return;
     foldersGrid.querySelectorAll('.folder-card').forEach((card) => {
         const icon = card.querySelector('.folder-icon');
+        const deleteBtn = card.querySelector('.folder-delete-btn');
         if (card.dataset.folderName === folderName) {
             card.classList.add('selected');
             // 改為實心圖示
@@ -462,12 +488,20 @@ function updateSelectedFolderCard(folderName) {
                 icon.classList.remove('bi-folder');
                 icon.classList.add('bi-folder-fill');
             }
+            // 顯示刪除按鈕
+            if (deleteBtn) {
+                deleteBtn.classList.remove('d-none');
+            }
         } else {
             card.classList.remove('selected');
             // 改回空心圖示
             if (icon) {
                 icon.classList.remove('bi-folder-fill');
                 icon.classList.add('bi-folder');
+            }
+            // 隱藏刪除按鈕
+            if (deleteBtn) {
+                deleteBtn.classList.add('d-none');
             }
         }
     });
@@ -657,5 +691,65 @@ async function handleCreateFolder() {
         // 恢復按鈕狀態
         createFolderBtn.disabled = false;
         createFolderBtn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>建立分類';
+    }
+}
+
+/**
+ * 顯示刪除分類確認 Modal
+ */
+function showDeleteFolderModal(folderName) {
+    if (!deleteFolderModalInstance || !folderToDeleteName || !confirmDeleteFolderBtn) return;
+    
+    // 設定要刪除的資料夾名稱
+    folderToDeleteName.textContent = folderName;
+    
+    // 移除舊的事件監聽器並綁定新的
+    const newBtn = confirmDeleteFolderBtn.cloneNode(true);
+    confirmDeleteFolderBtn.parentNode.replaceChild(newBtn, confirmDeleteFolderBtn);
+    confirmDeleteFolderBtn = newBtn;
+    
+    confirmDeleteFolderBtn.addEventListener('click', () => handleDeleteFolder(folderName));
+    
+    // 顯示 Modal
+    deleteFolderModalInstance.show();
+}
+
+/**
+ * 處理刪除分類
+ */
+async function handleDeleteFolder(folderName) {
+    try {
+        // 顯示載入狀態
+        const originalHtml = confirmDeleteFolderBtn.innerHTML;
+        confirmDeleteFolderBtn.disabled = true;
+        confirmDeleteFolderBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>刪除中...';
+
+        // 動態匯入 deleteSubFolder
+        const { deleteSubFolder } = await import('./repo.js');
+        await deleteSubFolder(folderName);
+        
+        showSuccess(`✓ 已刪除分類：${folderName}`);
+
+        // 隱藏 Modal
+        deleteFolderModalInstance.hide();
+
+        // 重新載入資料夾列表
+        await refreshFoldersList();
+
+        // 隱藏上傳區域
+        const uploadSection = document.getElementById('upload-section');
+        if (uploadSection) {
+            uploadSection.classList.add('d-none');
+        }
+
+        // 恢復按鈕狀態
+        confirmDeleteFolderBtn.disabled = false;
+        confirmDeleteFolderBtn.innerHTML = '<i class="bi bi-trash me-1"></i>確認刪除';
+    } catch (error) {
+        showError(error.message);
+
+        // 恢復按鈕狀態
+        confirmDeleteFolderBtn.disabled = false;
+        confirmDeleteFolderBtn.innerHTML = '<i class="bi bi-trash me-1"></i>確認刪除';
     }
 }

@@ -350,6 +350,57 @@ export async function deleteFile(filename, sha) {
 }
 
 /**
+ * 刪除分類（遞迴刪除資料夾內所有檔案）
+ */
+export async function deleteSubFolder(folderName) {
+    const octokit = getOctokit();
+
+    if (!octokit) {
+        throw new Error('請先登入 GitHub');
+    }
+
+    if (!folderName || folderName.trim() === '') {
+        throw new Error('請指定分類名稱');
+    }
+
+    const folderPath = `${CONFIG.fileBasePath}/${folderName}`;
+
+    try {
+        // 先取得該資料夾下的所有檔案
+        const { data: contents } = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
+            owner: CONFIG.defaultRepo.owner,
+            repo: CONFIG.defaultRepo.repo,
+            path: folderPath,
+            ref: CONFIG.defaultRepo.branch,
+        });
+
+        // 遞迴刪除所有檔案
+        for (const item of contents) {
+            await octokit.request('DELETE /repos/{owner}/{repo}/contents/{path}', {
+                owner: CONFIG.defaultRepo.owner,
+                repo: CONFIG.defaultRepo.repo,
+                path: item.path,
+                message: `Delete ${item.name} from folder ${folderName}`,
+                sha: item.sha,
+                branch: CONFIG.defaultRepo.branch,
+            });
+        }
+
+        if (onFileOperationSuccess) {
+            onFileOperationSuccess(`✓ 已刪除分類：${folderName}`);
+        }
+
+        return true;
+    } catch (error) {
+        const errorMsg = error.message || `刪除分類失敗：${error.message}`;
+        if (onFileOperationFail) {
+            onFileOperationFail(errorMsg);
+        }
+        throw new Error(errorMsg);
+    }
+}
+
+/**
  * 取得檔案類型
  */
 function getFileType(filename) {
