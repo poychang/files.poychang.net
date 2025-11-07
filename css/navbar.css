@@ -1,0 +1,75 @@
+/**
+ * 導航列樣式
+ * 包含頂部導航列、使用者資訊、主題切換按鈕等
+ */
+
+/* 導航列樣式 */
+.navbar {
+    min-height: 60px;
+    background-color: var(--navbar-bg) !important;
+    border-bottom: 1px solid var(--border-color);
+    transition: background-color 0.3s ease;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030;
+}
+
+.navbar-brand {
+    font-size: 1.25rem;
+    color: var(--navbar-text) !important;
+}
+
+.navbar-brand i {
+    color: #0d6efd;
+}
+
+#navbar-user-avatar {
+    border: 2px solid var(--border-color);
+}
+
+.user-info-text {
+    color: var(--text-primary);
+}
+
+/* 主題切換按鈕 */
+#theme-toggle-btn,
+#navbar-logout-btn {
+    border-color: var(--border-color);
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+}
+
+#theme-toggle-btn:hover,
+#navbar-logout-btn:hover {
+    background-color: var(--drop-zone-hover);
+    transform: scale(1.05);
+}
+
+#navbar-logout-btn:hover {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+#navbar-logout-btn i {
+    font-size: 1rem;
+}
+
+/* 手機版導航列調整 */
+@media (max-width: 768px) {
+    .navbar-brand span {
+        font-size: 1rem;
+    }
+    
+    #navbar-user-info .d-flex {
+        flex-wrap: nowrap;
+    }
+    
+    /* 手機版按鈕樣式統一 */
+    #theme-toggle-btn,
+    #navbar-logout-btn {
+        font-size: 0.875rem;
+        padding: 0.25rem 0.5rem;
+    }
+}

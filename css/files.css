@@ -1,0 +1,136 @@
+/**
+ * 檔案相關樣式
+ * 包含檔案列表項目、檔案預覽、拖曳上傳區域等
+ */
+
+/* 拖曳上傳區域 */
+.drop-zone {
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background-color: var(--drop-zone-bg);
+    border-color: var(--border-color) !important;
+}
+
+.drop-zone:hover {
+    background-color: var(--drop-zone-hover);
+    border-color: #0d6efd !important;
+}
+
+.drop-zone.drag-over {
+    background-color: var(--drop-zone-active);
+    border-color: #0d6efd !important;
+    transform: scale(1.02);
+}
+
+.drop-zone i {
+    color: var(--text-muted);
+}
+
+.drop-zone p {
+    color: var(--text-primary);
+}
+
+.drop-zone .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* 檔案項目樣式 */
+.file-item {
+    transition: all 0.2s ease;
+    background-color: var(--bg-card);
+    border-color: var(--border-color) !important;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.file-item:hover {
+    background-color: var(--drop-zone-hover);
+}
+
+.file-item .file-icon-wrapper {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-item .file-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-item .file-actions {
+    flex-shrink: 0;
+}
+
+.file-preview-img {
+    max-width: 80px;
+    max-height: 80px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.file-icon-large {
+    font-size: 3rem;
+    color: var(--text-secondary);
+}
+
+.file-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    word-break: break-all;
+}
+
+[data-theme="dark"] .file-name {
+    color: #e9ecef !important;
+}
+
+.file-size {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+}
+
+[data-theme="dark"] .file-size {
+    color: #adb5bd;
+}
+
+.file-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.file-icon {
+    font-size: 20px;
+}
+
+.file-type {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+/* 手機版檔案相關調整 */
+@media (max-width: 768px) {
+    .file-actions {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .file-actions .btn {
+        width: 100%;
+    }
+    
+    .file-preview-img {
+        max-width: 60px;
+        max-height: 60px;
+    }
+}

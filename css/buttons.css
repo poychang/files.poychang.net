@@ -1,0 +1,96 @@
+/**
+ * 按鈕樣式
+ * 包含各種狀態與類型的按鈕
+ */
+
+/* 按鈕樣式增強 */
+.btn-outline-secondary {
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.btn-outline-secondary:hover {
+    color: #fff;
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}
+
+.btn-outline-primary {
+    color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}
+
+[data-theme="dark"] .btn-outline-primary {
+    color: #6ea8fe;
+    border-color: #6ea8fe;
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+}
+
+.btn-info {
+    background-color: #0dcaf0;
+    border-color: #0dcaf0;
+    color: #000;
+}
+
+[data-theme="dark"] .btn-info {
+    background-color: #087990;
+    border-color: #087990;
+    color: #fff;
+}
+
+/* Dark theme 按鈕顏色修正 */
+[data-theme="dark"] .btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+[data-theme="dark"] .btn-success {
+    background-color: #198754;
+    border-color: #198754;
+    color: #fff;
+}
+
+[data-theme="dark"] .btn-outline-danger {
+    color: #ea868f;
+    border-color: #ea868f;
+}
+
+[data-theme="dark"] .btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
+
+[data-theme="dark"] .btn-outline-success {
+    color: #75b798;
+    border-color: #75b798;
+}
+
+[data-theme="dark"] .btn-outline-success:hover {
+    background-color: #198754;
+    border-color: #198754;
+    color: #fff;
+}
+
+/* 工具提示樣式增強 */
+.btn-sm {
+    font-size: 0.875rem;
+}

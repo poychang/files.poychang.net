@@ -1,0 +1,48 @@
+/**
+ * 主樣式表
+ * 統一導入所有模組化的 CSS 檔案
+ * 
+ * 檔案結構：
+ * - variables.css: CSS 變數定義（淺色/深色主題）
+ * - base.css: 基礎樣式與重置
+ * - navbar.css: 導航列樣式
+ * - cards.css: 卡片與容器
+ * - forms.css: 表單元素
+ * - buttons.css: 按鈕樣式
+ * - folders.css: 分類相關
+ * - files.css: 檔案相關
+ * - notifications.css: 通知與提示訊息
+ * - modals.css: Modal 對話框
+ * - animations.css: 載入與動畫效果
+ * - footer.css: Footer 樣式
+ * - users.css: 使用者相關
+ * - utilities.css: 工具類樣式
+ */
+
+/* 1. 變數定義（必須最先載入） */
+@import url('./variables.css');
+
+/* 2. 基礎樣式 */
+@import url('./base.css');
+
+/* 3. 佈局元件 */
+@import url('./navbar.css');
+@import url('./footer.css');
+@import url('./cards.css');
+
+/* 4. 表單與控制項 */
+@import url('./forms.css');
+@import url('./buttons.css');
+
+/* 5. 功能模組 */
+@import url('./folders.css');
+@import url('./files.css');
+@import url('./users.css');
+
+/* 6. 互動元件 */
+@import url('./notifications.css');
+@import url('./modals.css');
+@import url('./animations.css');
+
+/* 7. 工具類 */
+@import url('./utilities.css');

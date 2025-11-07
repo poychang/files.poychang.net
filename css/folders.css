@@ -1,0 +1,150 @@
+/**
+ * 分類相關樣式
+ * 包含分類卡片、分類列表項目、刪除按鈕等
+ */
+
+/* 資料夾卡片樣式 */
+.folder-card {
+    transition: all 0.2s ease;
+    border: 2px solid var(--border-color);
+}
+
+.folder-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px var(--shadow);
+    border-color: #0d6efd;
+}
+
+.folder-card:hover i {
+    color: #0d6efd !important;
+    transform: scale(1.1);
+}
+
+.folder-card i {
+    transition: all 0.2s ease;
+}
+
+.folder-card .card-title {
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+/* 已選取的分類卡片高亮 */
+.folder-card.selected {
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.folder-card.selected i {
+    color: #0d6efd !important;
+}
+
+.folder-card.selected .card-title {
+    color: #0d6efd;
+}
+
+/* 手機版資料夾卡片調整 */
+@media (max-width: 768px) {
+    .folder-card .card-body {
+        padding: 1.5rem 1rem !important;
+    }
+    
+    .folder-card i {
+        font-size: 3rem !important;
+    }
+    
+    .folder-card .card-title {
+        font-size: 0.9rem;
+    }
+}
+
+/* 分類列表項目樣式 */
+.folder-list-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.folder-list-item:hover {
+    background-color: var(--drop-zone-hover);
+}
+
+.folder-list-item:last-child {
+    border-bottom: none;
+}
+
+.folder-list-item .folder-icon {
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.folder-list-item .folder-name {
+    flex: 1;
+    font-weight: 500;
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+.folder-list-item .folder-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.folder-list-item .folder-actions .btn {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+/* 分類卡片刪除按鈕樣式 */
+.folder-delete-btn {
+    background: transparent !important;
+    border: none !important;
+    color: #dc3545 !important;
+    padding: 0.25rem 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.folder-delete-btn i {
+    color: #dc3545 !important;
+}
+
+.folder-delete-btn:hover {
+    color: #bb2d3b !important;
+    background: rgba(220, 53, 69, 0.1) !important;
+    transform: scale(1.1);
+}
+
+.folder-delete-btn:hover i {
+    color: #bb2d3b !important;
+}
+
+.folder-delete-btn:active {
+    transform: scale(0.95);
+}
+
+[data-theme="dark"] .folder-delete-btn i {
+    color: #ea868f !important;
+}
+
+[data-theme="dark"] .folder-delete-btn:hover {
+    color: #dc3545 !important;
+    background: rgba(220, 53, 69, 0.15) !important;
+}
+
+[data-theme="dark"] .folder-delete-btn:hover i {
+    color: #ff6b7a !important;
+}
+
+/* 自訂 5 欄網格（每排 5 個分類） */
+@media (min-width: 1200px) {
+    .col-xl-2-4 {
+        flex: 0 0 auto;
+        width: 20%;
+    }
+}

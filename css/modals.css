@@ -1,0 +1,40 @@
+/**
+ * Modal 對話框樣式
+ * 包含各種 Modal 及其在深色主題下的樣式
+ */
+
+/* Modal 在 Dark Theme 下的樣式 */
+[data-theme="dark"] .modal-content {
+    background-color: var(--bg-card);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-header {
+    background-color: var(--card-header-bg);
+    border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .modal-title {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal-body {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal-body p {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal-body .text-muted {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .modal-footer {
+    background-color: var(--bg-card);
+    border-top-color: var(--border-color);
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}

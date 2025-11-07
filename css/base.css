@@ -1,0 +1,84 @@
+/**
+ * 基礎樣式與重置
+ * 包含全域樣式、重置與基礎排版
+ */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 防止白色閃爍：在 JavaScript 載入前就使用深色背景 */
+html {
+    background-color: #1a1a1a;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding-top: 60px; /* 為固定導航列留出空間 */
+    padding-bottom: var(--footer-space); /* 為固定 Footer 留出空間 */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 文字顏色 */
+.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* 連結樣式 */
+a {
+    color: #0d6efd;
+}
+
+[data-theme="dark"] a {
+    color: #6ea8fe;
+}
+
+a:hover {
+    color: #0a58ca;
+}
+
+[data-theme="dark"] a:hover {
+    color: #9ec5fe;
+}
+
+/* Code 標籤樣式 */
+code {
+    color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.1);
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+    font-size: 0.875em;
+}
+
+[data-theme="dark"] code {
+    color: #6ea8fe;
+    background-color: rgba(110, 168, 254, 0.15);
+}
+
+/* 自定義捲軸 */
+#file-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+#file-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+#file-list::-webkit-scrollbar-track {
+    background: var(--drop-zone-bg);
+}
+
+#file-list::-webkit-scrollbar-thumb {
+    background: var(--text-secondary);
+    border-radius: 4px;
+}
+
+#file-list::-webkit-scrollbar-thumb:hover {
+    background: var(--text-primary);
+}

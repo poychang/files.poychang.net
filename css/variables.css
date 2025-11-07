@@ -1,0 +1,49 @@
+/**
+ * CSS 變數定義
+ * 包含淺色與深色主題的所有變數
+ */
+
+/* 預設深色背景（防止閃爍） */
+:root {
+    background-color: #1a1a1a;
+    color: #e9ecef;
+}
+
+/* CSS 變數 - Light Theme */
+:root {
+    --bg-primary: #f8f9fa;
+    --bg-secondary: #ffffff;
+    --bg-card: #ffffff;
+    --text-primary: #212529;
+    --text-secondary: #6c757d;
+    --text-muted: #adb5bd;
+    --border-color: #dee2e6;
+    --navbar-bg: #ffffff;
+    --navbar-text: #212529;
+    --drop-zone-bg: #f8f9fa;
+    --drop-zone-hover: #e9ecef;
+    --drop-zone-active: #e7f3ff;
+    --shadow: rgba(0, 0, 0, 0.1);
+    --card-header-bg: #f8f9fa;
+    --card-header-text: #212529;
+    --footer-space: 64px; /* 為固定 Footer 預留空間 */
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+    --bg-primary: #1a1a1a;
+    --bg-secondary: #2d2d2d;
+    --bg-card: #2d2d2d;
+    --text-primary: #e9ecef;
+    --text-secondary: #adb5bd;
+    --text-muted: #6c757d;
+    --border-color: #495057;
+    --navbar-bg: #2d2d2d;
+    --navbar-text: #e9ecef;
+    --drop-zone-bg: #212529;
+    --drop-zone-hover: #343a40;
+    --drop-zone-active: #1a3a52;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --card-header-bg: #212529;
+    --card-header-text: #e9ecef;
+}

@@ -1,0 +1,17 @@
+/**
+ * 工具類樣式
+ * 包含其他雜項與輔助類別
+ */
+
+.link {
+    color: #0969da;
+    text-decoration: none;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+[data-theme="dark"] .link {
+    color: #6ea8fe;
+}

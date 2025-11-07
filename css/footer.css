@@ -1,0 +1,28 @@
+/**
+ * Footer 樣式
+ * 包含固定 Footer 及其主題適配
+ */
+
+/* Footer 主題適配 */
+.site-footer {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-top: 1px solid var(--border-color);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1030; /* 與 Navbar 層級一致 */
+}
+
+.site-footer a,
+.site-footer .link-body-secondary {
+    color: var(--text-primary) !important;
+    text-decoration: none;
+}
+
+.site-footer a:hover,
+.site-footer .link-body-secondary:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
+}
