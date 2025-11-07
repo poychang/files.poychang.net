@@ -4,7 +4,7 @@
  */
 
 import { initAuth } from './auth.js';
-import { initRepo, setCurrentSubFolder, uploadFiles, getCurrentSubFolder } from './repo.js';
+import { initRepo, uploadFiles, getCurrentSubFolder } from './repo.js';
 import { 
     initUI, 
     showMessage, 
@@ -50,34 +50,7 @@ function initApp() {
  * 設定事件監聽器
  */
 function setupEventListeners() {
-    // 子資料夾設定
-    const subfolderInput = document.getElementById('subfolder-input');
-    const browseFolderBtn = document.getElementById('browse-folder-btn');
-    const uploadSection = document.getElementById('upload-section');
-
-    // 瀏覽資料夾按鈕
-    if (browseFolderBtn) {
-        browseFolderBtn.addEventListener('click', async () => {
-            const folderName = subfolderInput.value.trim() || CONFIG.defaultSubFolder;
-            setCurrentSubFolder(folderName);
-            
-            // 顯示上傳區域
-            uploadSection.classList.remove('d-none');
-            
-            // 載入該資料夾的檔案列表
-            showInfo(`正在載入資料夾：${folderName}`);
-            await refreshFileList();
-        });
-    }
-
-    // Enter 鍵快速瀏覽
-    if (subfolderInput) {
-        subfolderInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && browseFolderBtn) {
-                browseFolderBtn.click();
-            }
-        });
-    }
+    // 由 UI 的分類卡片負責切換與載入，移除舊的瀏覽資料夾事件繫結
 
     // 檔案選擇（透過按鈕或拖曳）
     const fileInput = getFileInput();
@@ -159,9 +132,12 @@ async function handleFileUpload(files) {
 /**
  * 處理認證成功
  */
-async function handleAuthSuccess(user) {
+async function handleAuthSuccess(user, options = {}) {
     displayUserInfo(user);
-    showSuccess('✅ 登入成功！');
+    // 僅在手動登入時顯示成功提示；自動登入（localStorage）不顯示
+    if (!options.auto) {
+        showSuccess('✅ 登入成功！');
+    }
     
     // 顯示已登入區域
     const loginSection = document.getElementById('login-section');
@@ -213,12 +189,6 @@ function handleLogout() {
     if (authenticatedSection) authenticatedSection.classList.add('d-none');
     if (uploadSection) uploadSection.classList.add('d-none');
     if (pageHeader) pageHeader.classList.remove('d-none');
-    
-    // 重置子資料夾輸入
-    const subfolderInput = document.getElementById('subfolder-input');
-    if (subfolderInput) {
-        subfolderInput.value = CONFIG.defaultSubFolder;
-    }
     
     showSuccess('已登出');
 }

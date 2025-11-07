@@ -9,6 +9,16 @@ let currentSubFolder = CONFIG.defaultSubFolder;
 let onFileOperationSuccess = null;
 let onFileOperationFail = null;
 
+// 檔案副檔名常數集中化
+const EXTENSIONS = {
+    image: ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp', 'ico'],
+    video: ['mp4', 'webm', 'ogg', 'mov', 'avi'],
+    audio: ['mp3', 'wav', 'ogg', 'aac', 'm4a'],
+    document: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'md'],
+    code: ['js', 'ts', 'jsx', 'tsx', 'html', 'css', 'json', 'xml', 'yml', 'yaml'],
+    archive: ['zip', 'rar', '7z', 'tar', 'gz'],
+};
+
 /**
  * 初始化 Repo 模組
  */
@@ -75,7 +85,7 @@ function fileToBase64(file) {
 /**
  * 上傳單個檔案到 GitHub
  */
-export async function uploadFile(file, progressCallback) {
+export async function uploadFile(file) {
     const octokit = getOctokit();
 
     if (!octokit) {
@@ -115,10 +125,6 @@ export async function uploadFile(file, progressCallback) {
             branch: CONFIG.defaultRepo.branch,
             sha: sha, // 如果是更新，需要提供 SHA
         });
-
-        if (progressCallback) {
-            progressCallback(100);
-        }
 
         return {
             name: file.name,
@@ -175,12 +181,12 @@ export async function createSubFolder(folderName) {
         throw new Error('請輸入分類名稱');
     }
 
-    // 清理資料夾名稱（移除特殊字元）
+    // 清理分類名稱（移除特殊字元）
     const cleanFolderName = folderName.trim().replace(/[^a-zA-Z0-9_-]/g, '-');
     const gitkeepPath = `${CONFIG.fileBasePath}/${cleanFolderName}/.gitkeep`;
 
     try {
-        // 檢查資料夾是否已存在
+        // 檢查分類是否已存在
         try {
             await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
                 owner: CONFIG.defaultRepo.owner,
@@ -192,13 +198,13 @@ export async function createSubFolder(folderName) {
             throw new Error(`分類 "${cleanFolderName}" 已存在`);
         } catch (error) {
             if (error.status !== 404) {
-                // 如果不是 404 錯誤，表示是其他問題（例如資料夾已存在）
+                // 如果不是 404 錯誤，表示是其他問題
                 throw error;
             }
-            // 404 表示資料夾不存在，可以繼續建立
+            // 404 表示分類不存在，可以繼續建立
         }
 
-        // 建立 .gitkeep 檔案來建立資料夾
+        // 建立 .gitkeep 檔案來建立分類
         await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
             owner: CONFIG.defaultRepo.owner,
             repo: CONFIG.defaultRepo.repo,
@@ -217,7 +223,7 @@ export async function createSubFolder(folderName) {
             path: `${CONFIG.fileBasePath}/${cleanFolderName}`,
         };
     } catch (error) {
-        const errorMsg = error.message || `建立資料夾失敗：${error.message}`;
+        const errorMsg = error.message || `建立分類失敗：${error.message}`;
         if (onFileOperationFail) {
             onFileOperationFail(errorMsg);
         }
@@ -226,7 +232,7 @@ export async function createSubFolder(folderName) {
 }
 
 /**
- * 取得 files 資料夾下的所有子資料夾
+ * 取得 files 下的所有分類
  */
 export async function listSubFolders() {
     const octokit = getOctokit();
@@ -243,7 +249,7 @@ export async function listSubFolders() {
             ref: CONFIG.defaultRepo.branch,
         });
 
-        // 過濾出資料夾並按字母順序排序
+        // 過濾出分類並按字母順序排序
         const folders = data
             .filter((item) => item.type === 'dir')
             .map((folder) => ({
@@ -256,15 +262,15 @@ export async function listSubFolders() {
         return folders;
     } catch (error) {
         if (error.status === 404) {
-            // files 資料夾不存在，返回空陣列
+            // files 路徑不存在，返回空陣列
             return [];
         }
-        throw new Error(`取得資料夾列表失敗：${error.message}`);
+        throw new Error(`取得分類列表失敗：${error.message}`);
     }
 }
 
 /**
- * 取得指定資料夾下的檔案列表
+ * 取得指定分類下的檔案列表
  */
 export async function listFiles(subFolder) {
     const octokit = getOctokit();
@@ -300,7 +306,7 @@ export async function listFiles(subFolder) {
         return files;
     } catch (error) {
         if (error.status === 404) {
-            // 資料夾不存在，返回空陣列
+            // 分類不存在，返回空陣列
             return [];
         }
         throw new Error(`取得檔案列表失敗：${error.message}`);
@@ -348,21 +354,9 @@ export async function deleteFile(filename, sha) {
  */
 function getFileType(filename) {
     const ext = filename.split('.').pop().toLowerCase();
-
-    const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp', 'ico'];
-    const videoExts = ['mp4', 'webm', 'ogg', 'mov', 'avi'];
-    const audioExts = ['mp3', 'wav', 'ogg', 'aac', 'm4a'];
-    const documentExts = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'md'];
-    const codeExts = ['js', 'ts', 'jsx', 'tsx', 'html', 'css', 'json', 'xml', 'yml', 'yaml'];
-    const archiveExts = ['zip', 'rar', '7z', 'tar', 'gz'];
-
-    if (imageExts.includes(ext)) return 'image';
-    if (videoExts.includes(ext)) return 'video';
-    if (audioExts.includes(ext)) return 'audio';
-    if (documentExts.includes(ext)) return 'document';
-    if (codeExts.includes(ext)) return 'code';
-    if (archiveExts.includes(ext)) return 'archive';
-
+    for (const [type, list] of Object.entries(EXTENSIONS)) {
+        if (list.includes(ext)) return type;
+    }
     return 'file';
 }
 

@@ -69,7 +69,7 @@ async function checkExistingAuth() {
             
             if (onAuthSuccess) {
                 const user = await getUserInfo();
-                onAuthSuccess(user);
+                onAuthSuccess(user, { auto: true });
             }
         } catch (error) {
             // Token 無效，清除並顯示登入按鈕
@@ -117,7 +117,7 @@ async function loginWithToken() {
         showAuthenticatedState();
         
         if (onAuthSuccess) {
-            onAuthSuccess(user);
+            onAuthSuccess(user, { auto: false });
         }
         
     } catch (error) {

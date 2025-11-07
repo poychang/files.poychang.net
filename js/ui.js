@@ -384,10 +384,8 @@ export function displayFoldersList(folders) {
         return;
     }
 
-    // 按字母順序排序（根據 name 屬性）
-    const sortedFolders = [...folders].sort((a, b) => a.name.localeCompare(b.name));
-
-    foldersGrid.innerHTML = sortedFolders.map((folder) => createFolderCard(folder)).join('');
+    // 已於資料層排序，這裡直接渲染
+    foldersGrid.innerHTML = folders.map((folder) => createFolderCard(folder)).join('');
 
     // 綁定點擊事件
     foldersGrid.querySelectorAll('.folder-card').forEach((card) => {
@@ -412,7 +410,7 @@ function createFolderCard(folder) {
         <div class="col-sm-6 col-md-4 col-lg-3">
             <div class="folder-card card h-100 shadow-sm" data-folder-name="${folder.name}" style="cursor: pointer;">
                 <div class="card-body text-center d-flex flex-column align-items-center justify-content-center p-4">
-                    <i class="bi bi-folder-fill text-primary display-4 mb-3"></i>
+                    <i class="folder-icon bi bi-folder text-primary display-4 mb-3"></i>
                     <h6 class="card-title mb-0 fw-bold">${folder.name}</h6>
                 </div>
             </div>
@@ -443,7 +441,7 @@ async function selectFolder(folderName) {
     }
 
     // 載入該分類的檔案列表
-    showInfo(`正在載入分類：${folderName}`);
+    showInfo(`載入分類：${folderName}`);
     await refreshFileList();
 
     // 滾動到檔案上傳區域
@@ -456,10 +454,21 @@ async function selectFolder(folderName) {
 function updateSelectedFolderCard(folderName) {
     if (!foldersGrid) return;
     foldersGrid.querySelectorAll('.folder-card').forEach((card) => {
+        const icon = card.querySelector('.folder-icon');
         if (card.dataset.folderName === folderName) {
             card.classList.add('selected');
+            // 改為實心圖示
+            if (icon) {
+                icon.classList.remove('bi-folder');
+                icon.classList.add('bi-folder-fill');
+            }
         } else {
             card.classList.remove('selected');
+            // 改回空心圖示
+            if (icon) {
+                icon.classList.remove('bi-folder-fill');
+                icon.classList.add('bi-folder');
+            }
         }
     });
 }
@@ -476,7 +485,7 @@ export function displayFileList(files) {
         fileListContainer.innerHTML = `
             <div class="text-center text-muted py-5">
                 <i class="bi bi-inbox display-1"></i>
-                <p class="mt-3">此資料夾目前沒有檔案</p>
+                <p class="mt-3">此分類目前沒有檔案</p>
                 <p class="small">上傳一些檔案來開始使用</p>
             </div>
         `;
@@ -491,7 +500,7 @@ export function displayFileList(files) {
     });
 
     fileListContainer.querySelectorAll('.btn-delete-file').forEach((btn) => {
-        btn.addEventListener('click', () => confirmDeleteFile(btn.dataset.filename, btn.dataset.sha));
+        btn.addEventListener('click', (e) => confirmDeleteFile(btn.dataset.filename, btn.dataset.sha, e.currentTarget));
     });
 }
 
@@ -565,14 +574,14 @@ async function copyFileLink(url, filename) {
 /**
  * 確認刪除檔案
  */
-async function confirmDeleteFile(filename, sha) {
+async function confirmDeleteFile(filename, sha, triggerBtn) {
     if (!confirm(`確定要刪除檔案 "${filename}" 嗎？\n\n此操作無法復原。`)) {
         return;
     }
 
     try {
         // 顯示載入狀態
-        const deleteBtn = event.target.closest('.btn-delete-file');
+        const deleteBtn = triggerBtn;
         const originalHtml = deleteBtn.innerHTML;
         deleteBtn.disabled = true;
         deleteBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>刪除中...';

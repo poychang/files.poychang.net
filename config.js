@@ -1,9 +1,5 @@
-// 應用程式設定
+// 應用程式設定（使用 Personal Access Token 驗證）
 const CONFIG = {
-    // GitHub OAuth 應用程式設定
-    clientId: '4beff413792d5dfbd9bf',
-    scopes: ['public_repo', 'repo'],
-    
     // 預設的儲存庫設定（用於文件上傳）
     defaultRepo: {
         owner: 'poychang',

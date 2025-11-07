@@ -336,30 +336,32 @@ body {
     box-shadow: 0 0.5rem 1rem var(--shadow);
     background-color: var(--bg-card);
     border: 1px solid var(--border-color);
+    backdrop-filter: saturate(180%) blur(8px);
+    -webkit-backdrop-filter: saturate(180%) blur(8px);
 }
 
 .toast.bg-success {
-    background-color: #198754 !important;
+    background-color: rgba(25, 135, 84, 0.8) !important; /* 再更透明 */
     color: white !important;
-    border-color: #198754 !important;
+    border-color: rgba(25, 135, 84, 0.8) !important;
 }
 
 .toast.bg-danger {
-    background-color: #dc3545 !important;
+    background-color: rgba(220, 53, 69, 0.8) !important; /* 再更透明 */
     color: white !important;
-    border-color: #dc3545 !important;
+    border-color: rgba(220, 53, 69, 0.8) !important;
 }
 
 .toast.bg-info {
-    background-color: #0dcaf0 !important;
+    background-color: rgba(13, 202, 240, 0.8) !important; /* 再更透明 */
     color: #000 !important;
-    border-color: #0dcaf0 !important;
+    border-color: rgba(13, 202, 240, 0.8) !important;
 }
 
 .toast.bg-warning {
-    background-color: #ffc107 !important;
+    background-color: rgba(255, 193, 7, 0.8) !important; /* 再更透明 */
     color: #000 !important;
-    border-color: #ffc107 !important;
+    border-color: rgba(255, 193, 7, 0.8) !important;
 }
 
 .toast .toast-body {
