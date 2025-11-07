@@ -883,3 +883,11 @@ input[type="text"]:focus {
 [data-theme="dark"] .folder-delete-btn:hover i {
     color: #ff6b7a !important;
 }
+
+/* 自訂 5 欄網格（每排 5 個分類） */
+@media (min-width: 1200px) {
+    .col-xl-2-4 {
+        flex: 0 0 auto;
+        width: 20%;
+    }
+}

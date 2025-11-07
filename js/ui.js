@@ -414,10 +414,22 @@ export function displayFoldersList(folders) {
         });
     });
 
-    // 依目前選擇高亮顯示
+    // 依目前選擇自動選取或高亮顯示
     const current = getCurrentSubFolder && getCurrentSubFolder();
-    if (current) {
+    const uploadSection = document.getElementById('upload-section');
+    const uploadHidden = uploadSection ? uploadSection.classList.contains('d-none') : true;
+    const folderNames = new Set(folders.map(f => f.name));
+
+    if (uploadHidden) {
+        // 初次載入或尚未顯示上傳區塊：自動選取預設/現有分類並載入檔案
+        const target = current && folderNames.has(current) ? current : folders[0].name;
+        selectFolder(target);
+    } else if (current && folderNames.has(current)) {
+        // 已顯示上傳區塊：只更新高亮，不重新載入
         updateSelectedFolderCard(current);
+    } else if (folders.length > 0) {
+        // 目前選擇已不存在：選取第一個可用分類
+        selectFolder(folders[0].name);
     }
 }
 
@@ -426,7 +438,7 @@ export function displayFoldersList(folders) {
  */
 function createFolderCard(folder) {
     return `
-        <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2-4">
             <div class="folder-card card h-100 shadow-sm" data-folder-name="${folder.name}" style="cursor: pointer; position: relative;">
                 <button class="btn btn-sm btn-danger folder-delete-btn d-none" 
                         data-folder-name="${folder.name}"
@@ -679,7 +691,8 @@ async function handleCreateFolder() {
         // 清空輸入框
         newFolderInput.value = '';
 
-        // 重新載入資料夾列表
+        // 稍微延遲後重新載入資料夾列表,讓 GitHub API 有時間更新
+        await new Promise(resolve => setTimeout(resolve, 1000));
         await refreshFoldersList();
 
         // 恢復按鈕狀態
@@ -733,7 +746,8 @@ async function handleDeleteFolder(folderName) {
         // 隱藏 Modal
         deleteFolderModalInstance.hide();
 
-        // 重新載入資料夾列表
+        // 稍微延遲後重新載入資料夾列表,讓 GitHub API 有時間更新
+        await new Promise(resolve => setTimeout(resolve, 1000));
         await refreshFoldersList();
 
         // 隱藏上傳區域

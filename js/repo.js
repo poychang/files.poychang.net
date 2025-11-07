@@ -128,13 +128,11 @@ export async function uploadFile(file) {
 
         return {
             name: file.name,
-            path: path,
-            url: getFileUrl(file.name),
             sha: data.content.sha,
         };
     } catch (error) {
         console.error('Upload error:', error);
-        throw new Error(`上傳失敗：${error.message}`);
+            throw error;
     }
 }
 
@@ -186,31 +184,20 @@ export async function createSubFolder(folderName) {
     const gitkeepPath = `${CONFIG.fileBasePath}/${cleanFolderName}/.gitkeep`;
 
     try {
-        // 檢查分類是否已存在
-        try {
-            await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
-                owner: CONFIG.defaultRepo.owner,
-                repo: CONFIG.defaultRepo.repo,
-                path: `${CONFIG.fileBasePath}/${cleanFolderName}`,
-                ref: CONFIG.defaultRepo.branch,
-            });
-            // 如果沒有拋出錯誤，表示分類已存在
+        // 以列表查重，避免對單一路徑發出 404 的請求
+        const existing = await listSubFolders();
+        const exists = existing.some(f => f.name.toLowerCase() === cleanFolderName.toLowerCase());
+        if (exists) {
             throw new Error(`分類 "${cleanFolderName}" 已存在`);
-        } catch (error) {
-            if (error.status !== 404) {
-                // 如果不是 404 錯誤，表示是其他問題
-                throw error;
-            }
-            // 404 表示分類不存在，可以繼續建立
         }
 
-        // 建立 .gitkeep 檔案來建立分類
+        // 建立 .gitkeep 檔案來建立分類（使用換行做為安全內容，避免空內容的相容性問題）
         await octokit.request('PUT /repos/{owner}/{repo}/contents/{path}', {
             owner: CONFIG.defaultRepo.owner,
             repo: CONFIG.defaultRepo.repo,
             path: gitkeepPath,
             message: `Create folder: ${cleanFolderName}`,
-            content: btoa(''), // 空內容的 base64
+            content: btoa('\n'), // 簡單內容的 base64，避免空內容相容性問題
             branch: CONFIG.defaultRepo.branch,
         });
 
@@ -287,7 +274,7 @@ export async function listFiles(subFolder) {
             owner: CONFIG.defaultRepo.owner,
             repo: CONFIG.defaultRepo.repo,
             path: path,
-            ref: CONFIG.defaultRepo.branch,
+              ref: CONFIG.defaultRepo.branch,
         });
 
         // 過濾出檔案（排除資料夾）
