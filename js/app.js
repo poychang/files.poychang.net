@@ -17,7 +17,8 @@ import {
     hideUploadProgress,
     refreshFileList,
     refreshFoldersList,
-    getFileInput
+    getFileInput,
+    showUploadConfirmModal
 } from './ui.js';
 
 /**
@@ -80,14 +81,18 @@ async function handleFileUpload(files) {
     }
 
     const currentFolder = getCurrentSubFolder();
+    const targetPath = `${CONFIG.fileBasePath}/${currentFolder}/`;
     
-    if (!confirm(`確定要上傳 ${files.length} 個檔案到 files/${currentFolder}/ 嗎？`)) {
-        // 清除檔案選擇
-        const fileInput = getFileInput();
-        if (fileInput) fileInput.value = '';
-        return;
-    }
+    // 使用 Modal 確認上傳
+    showUploadConfirmModal(files.length, targetPath, async () => {
+        await performUpload(files);
+    });
+}
 
+/**
+ * 執行檔案上傳
+ */
+async function performUpload(files) {
     try {
         showInfo(`開始上傳 ${files.length} 個檔案...`);
         

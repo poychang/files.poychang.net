@@ -262,6 +262,37 @@
         </div>
     </div>
 
+    <!-- 上傳檔案確認 Modal -->
+    <div class="modal fade" id="uploadConfirmModal" tabindex="-1" aria-labelledby="uploadConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="uploadConfirmModalLabel">
+                        <i class="bi bi-cloud-upload-fill text-primary me-2"></i>
+                        確認上傳檔案
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">確定要上傳 <strong id="upload-file-count" class="text-primary"></strong> 個檔案到以下路徑嗎？</p>
+                    <p class="mb-2">
+                        <code id="upload-target-path" class="text-primary"></code>
+                    </p>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        如果檔案名稱已存在，將會覆蓋原有檔案。
+                    </p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirm-upload-btn">
+                        <i class="bi bi-cloud-upload me-1"></i>確認上傳
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap 5 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 

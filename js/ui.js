@@ -25,6 +25,8 @@ let uploadProgress, progressBar, uploadStatus;
 let fileListContainer, fileCountBadge, refreshFilesBtn;
 let deleteFolderModal, deleteFolderModalInstance;
 let folderToDeleteName, confirmDeleteFolderBtn;
+let uploadConfirmModal, uploadConfirmModalInstance;
+let uploadFileCount, uploadTargetPath, confirmUploadBtn;
 
 /**
  * 初始化 UI 模組
@@ -72,6 +74,15 @@ export function initUI() {
     confirmDeleteFolderBtn = document.getElementById('confirm-delete-folder-btn');
     if (deleteFolderModal) {
         deleteFolderModalInstance = new bootstrap.Modal(deleteFolderModal);
+    }
+
+    // 初始化上傳確認 Modal
+    uploadConfirmModal = document.getElementById('uploadConfirmModal');
+    uploadFileCount = document.getElementById('upload-file-count');
+    uploadTargetPath = document.getElementById('upload-target-path');
+    confirmUploadBtn = document.getElementById('confirm-upload-btn');
+    if (uploadConfirmModal) {
+        uploadConfirmModalInstance = new bootstrap.Modal(uploadConfirmModal);
     }
 
     // 綁定建立資料夾按鈕
@@ -766,4 +777,29 @@ async function handleDeleteFolder(folderName) {
         confirmDeleteFolderBtn.disabled = false;
         confirmDeleteFolderBtn.innerHTML = '<i class="bi bi-trash me-1"></i>確認刪除';
     }
+}
+
+/**
+ * 顯示上傳檔案確認 Modal
+ */
+export function showUploadConfirmModal(fileCount, targetPath, onConfirm) {
+    if (!uploadConfirmModalInstance || !uploadFileCount || !uploadTargetPath || !confirmUploadBtn) return;
+    
+    // 設定檔案數量和目標路徑
+    uploadFileCount.textContent = fileCount;
+    uploadTargetPath.textContent = targetPath;
+    
+    // 移除舊的事件監聽器並綁定新的
+    const newBtn = confirmUploadBtn.cloneNode(true);
+    confirmUploadBtn.parentNode.replaceChild(newBtn, confirmUploadBtn);
+    confirmUploadBtn = newBtn;
+    
+    // 綁定確認事件
+    confirmUploadBtn.addEventListener('click', () => {
+        uploadConfirmModalInstance.hide();
+        if (onConfirm) onConfirm();
+    });
+    
+    // 顯示 Modal
+    uploadConfirmModalInstance.show();
 }
