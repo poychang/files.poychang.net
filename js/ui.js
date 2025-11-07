@@ -33,6 +33,50 @@ let folderManagementView, fileManagementView, backToFoldersBtn;
  * 初始化 UI 模組
  */
 export function initUI() {
+    // 初始化分類過濾功能
+    setupFolderFilter();
+/**
+ * 分類列表過濾功能
+ */
+function setupFolderFilter() {
+    const filterInput = document.getElementById('filter-folder-input');
+    const clearBtn = document.getElementById('clear-filter-folder-btn');
+    const foldersList = document.getElementById('folders-list');
+    if (!filterInput || !foldersList) return;
+
+    function filterFolders() {
+        const keyword = filterInput.value.trim().toLowerCase();
+        const items = foldersList.querySelectorAll('.folder-list-item');
+        let hasVisible = false;
+        items.forEach(item => {
+            const text = item.textContent.trim().toLowerCase();
+            const match = keyword === '' || text.includes(keyword);
+            item.style.display = match ? '' : 'none';
+            if (match) hasVisible = true;
+        });
+        // 顯示「無符合結果」訊息
+        let emptyMsg = foldersList.querySelector('.no-folder-match');
+        if (!hasVisible) {
+            if (!emptyMsg) {
+                emptyMsg = document.createElement('div');
+                emptyMsg.className = 'text-center text-muted py-4 no-folder-match';
+                emptyMsg.innerHTML = '<i class="bi bi-folder-x display-6"></i><p class="mt-2">無符合的分類</p>';
+                foldersList.appendChild(emptyMsg);
+            }
+        } else if (emptyMsg) {
+            emptyMsg.remove();
+        }
+    }
+
+    filterInput.addEventListener('input', filterFolders);
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            filterInput.value = '';
+            filterFolders();
+            filterInput.focus();
+        });
+    }
+}
     messageToast = document.getElementById('message-toast');
     toastIcon = document.getElementById('toast-icon');
     toastMessage = document.getElementById('toast-message');
