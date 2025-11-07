@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
-<body>
+<body class="d-flex flex-column min-vh-100">
     <!-- 頂部資訊列 -->
     <nav class="navbar navbar-expand-lg shadow-sm" id="main-navbar">
         <div class="container-fluid">
@@ -49,7 +49,7 @@
         </div>
     </nav>
 
-    <div class="container-fluid pt-4 px-4">
+    <div class="container-fluid py-4 px-4 flex-grow-1">
         <div class="card shadow-lg border-0">
             <div class="card-body p-4 p-md-5">
                 <!-- Header -->
@@ -200,6 +200,25 @@
         </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="site-footer mt-auto py-3">
+        <div class="container-fluid text-center small">
+            <div class="d-flex flex-column flex-sm-row align-items-center justify-content-center gap-2">
+                <span>© <span id="current-year"></span></span>
+                <span class="d-none d-sm-inline">·</span>
+                <span>Made with ❤️ by PoyChang</span>
+                <span class="d-none d-sm-inline">·</span>
+                <a href="https://github.com/poychang/files.poychang.net" target="_blank" rel="noopener">
+                    Hosting on GitHub <i class="bi bi-github me-1"></i>
+                </a>
+                <span class="d-none d-sm-inline">·</span>
+                <a href="https://blog.poychang.net" target="_blank" rel="noopener">
+                    <i class="bi bi-house-door me-1"></i>Blog
+                </a>
+            </div>
+        </div>
+    </footer>
+
     <!-- Toast 通知容器 - 調整位置避免被導航列遮擋 -->
     <div class="toast-container position-fixed end-0 p-3" style="top: 70px; z-index: 9999;">
         <div id="message-toast" class="toast align-items-center border-0" role="alert" aria-live="assertive"
@@ -248,6 +267,15 @@
 
     <!-- 載入設定檔 -->
     <script src="config.js"></script>
+
+    <!-- Footer year init -->
+    <script>
+        (function(){
+            var y = new Date().getFullYear();
+            var el = document.getElementById('current-year');
+            if (el) el.textContent = y;
+        })();
+    </script>
 
     <!-- 主要應用程式邏輯 -->
     <script type="module" src="js/app.js"></script>

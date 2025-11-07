@@ -21,6 +21,7 @@
     --shadow: rgba(0, 0, 0, 0.1);
     --card-header-bg: #f8f9fa;
     --card-header-text: #212529;
+    --footer-space: 64px; /* 為固定 Footer 預留空間 */
 }
 
 /* Dark Theme */
@@ -48,6 +49,7 @@ body {
     color: var(--text-primary);
     min-height: 100vh;
     padding-top: 60px; /* 為固定導航列留出空間 */
+    padding-bottom: var(--footer-space); /* 為固定 Footer 留出空間 */
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -890,4 +892,28 @@ input[type="text"]:focus {
         flex: 0 0 auto;
         width: 20%;
     }
+}
+
+/* Footer 主題適配 */
+.site-footer {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border-top: 1px solid var(--border-color);
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1030; /* 與 Navbar 層級一致 */
+}
+
+.site-footer a,
+.site-footer .link-body-secondary {
+    color: var(--text-primary) !important;
+    text-decoration: none;
+}
+
+.site-footer a:hover,
+.site-footer .link-body-secondary:hover {
+    color: var(--text-primary);
+    text-decoration: underline;
 }
