@@ -53,6 +53,15 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* 卡片標題統一高度 */
+.card-header {
+    min-height: 80px;
+    display: flex;
+    align-items: flex-start;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
 /* 導航列樣式 */
 .navbar {
     min-height: 60px;
@@ -916,4 +925,73 @@ input[type="text"]:focus {
 .site-footer .link-body-secondary:hover {
     color: var(--text-primary);
     text-decoration: underline;
+}
+
+/* 分類列表項目樣式 */
+.folder-list-item {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.folder-list-item:hover {
+    background-color: var(--drop-zone-hover);
+}
+
+.folder-list-item:last-child {
+    border-bottom: none;
+}
+
+.folder-list-item .folder-icon {
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.folder-list-item .folder-name {
+    flex: 1;
+    font-weight: 500;
+    color: var(--text-primary);
+    word-break: break-word;
+}
+
+.folder-list-item .folder-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+.folder-list-item .folder-actions .btn {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+/* 檔案列表項目樣式增強 */
+.file-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.file-item .file-icon-wrapper {
+    flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-item .file-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-item .file-actions {
+    flex-shrink: 0;
 }

@@ -36,6 +36,12 @@
                     </div>
                 </div>
 
+                <!-- 目前分類（已選取分類時顯示） -->
+                <span id="navbar-current-folder" class="badge rounded-pill bg-secondary d-none">
+                    <i class="bi bi-folder2-open me-1"></i>
+                    <span id="navbar-current-folder-name"></span>
+                </span>
+
                 <!-- 主題切換按鈕 -->
                 <button id="theme-toggle-btn" class="btn btn-sm btn-outline-secondary" title="切換主題">
                     <i id="theme-icon" class="bi bi-sun-fill"></i>
@@ -95,34 +101,67 @@
 
                 <!-- 已登入區段 -->
                 <div id="authenticated-section" class="d-none">
-                    <div class="row">
-                        <!-- 左側：建立分類與上傳 -->
-                        <div class="col-lg-4">
-                            <div class="card mb-4">
-                                <div class="card-header">
-                                    <h5 class="mb-0"><i class="bi bi-folder-plus me-2"></i>建立分類</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="input-group">
+                    <!-- 視圖 1: 分類管理頁面 -->
+                    <div id="folder-management-view">
+                        <div class="row">
+                            <!-- 左側：建立分類 -->
+                            <div class="col-lg-4">
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5 class="mb-0"><i class="bi bi-folder-plus me-2"></i>建立分類</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="input-group">
                                             <input type="text" id="new-folder-input" class="form-control"
                                                 placeholder="輸入分類名稱">
-                                        <button id="create-folder-btn" class="btn btn-success">
-                                            <i class="bi bi-plus-circle me-2"></i>建立分類
-                                        </button>
+                                            <button id="create-folder-btn" class="btn btn-success">
+                                                <i class="bi bi-plus-circle me-2"></i>建立分類
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- 檔案上傳區 -->
-                            <div id="upload-section" class="d-none">
+                            <!-- 右側：分類列表 -->
+                            <div class="col-lg-8">
+                                <div class="card">
+                                    <div class="card-header d-flex justify-content-between">
+                                        <h5 class="mb-0"><i class="bi bi-folder-fill me-2"></i>現有分類</h5>
+                                        <button id="refresh-folders-btn" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-arrow-clockwise me-1"></i>重新整理
+                                        </button>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div id="folders-list" class="list-group list-group-flush">
+                                            <div class="text-center text-muted py-4">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">載入中...</span>
+                                                </div>
+                                                <p class="mt-2">載入分類列表...</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 視圖 2: 檔案管理頁面 -->
+                    <div id="file-management-view" class="d-none">
+                        <div class="row">
+                            <!-- 左側：上傳檔案 -->
+                            <div class="col-lg-4">
                                 <div class="card mb-4">
                                     <div class="card-header">
-                                        <h5 class="mb-0">
-                                            <i class="bi bi-upload me-2"></i>上傳檔案
-                                            <span class="text-muted" style="font-size: 0.875rem;">
-                                                至 <code id="current-folder-name" class="text-primary"></code>
-                                            </span>
-                                        </h5>
+                                        <div>
+                                            <h5 class="mb-0">
+                                                <i class="bi bi-upload me-2"></i>上傳檔案
+                                            </h5>
+                                            <div class="mt-1 small text-muted">
+                                                <i class="bi bi-folder2-open me-1"></i>
+                                                <code id="current-folder-name" class="text-primary text-break"></code>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="card-body">
                                         <div id="drop-zone"
@@ -148,45 +187,35 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- 右側：現有分類與列表 -->
-                        <div class="col-lg-8">
-                            <!-- 現有分類顯示 -->
-                            <div class="card mb-4">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0"><i class="bi bi-folder-fill me-2"></i>現有分類</h5>
-                                    <button id="refresh-folders-btn" class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-arrow-clockwise me-1"></i>重新整理
-                                    </button>
-                                </div>
-                                <div class="card-body">
-                                    <div id="folders-grid" class="row g-3">
-                                        <div class="col-12 text-center text-muted py-4">
-                                            <div class="spinner-border text-primary" role="status">
-                                                <span class="visually-hidden">載入中...</span>
-                                            </div>
-                                            <p class="mt-2">載入分類列表...</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                                <!-- 檔案列表 -->
+                            <!-- 右側：檔案列表 -->
+                            <div class="col-lg-8">
                                 <div class="card">
-                                    <div class="card-header d-flex justify-content-between align-items-center">
-                                        <h5 class="mb-0">
-                                            <i class="bi bi-files me-2"></i>
-                                            檔案列表 <span id="file-count-badge" class="badge bg-secondary ms-2">0</span>
-                                        </h5>
-                                        <button id="refresh-files-btn" class="btn btn-sm btn-outline-secondary">
-                                            <i class="bi bi-arrow-clockwise me-1"></i>重新整理
-                                        </button>
+                                    <div class="card-header d-flex justify-content-between">
+                                        <div>
+                                            <h5 class="mb-0">
+                                                <i class="bi bi-files me-2"></i>
+                                                檔案列表
+                                            </h5>
+                                            <div class="mt-1 small text-muted">
+                                                <i class="bi bi-folder2-open me-1"></i>
+                                                <code id="current-folder-name-header" class="text-primary text-break"></code>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <button id="back-to-folders-btn" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-arrow-left me-1"></i>返回
+                                            </button>
+                                            <button id="refresh-files-btn" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-arrow-clockwise me-1"></i>重新整理
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="card-body p-0">
                                         <div id="file-list" class="list-group list-group-flush">
                                             <div class="text-center text-muted py-4">
                                                 <i class="bi bi-folder2-open display-4"></i>
-                                                <p class="mt-2">請先選擇或瀏覽分類</p>
+                                                <p class="mt-2">載入檔案列表...</p>
                                             </div>
                                         </div>
                                     </div>

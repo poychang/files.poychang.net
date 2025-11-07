@@ -18,7 +18,7 @@ let messageToast, toastInstance;
 let toastIcon, toastMessage;
 let navbarUserInfo, navbarUserAvatar, navbarUserName, navbarUserLogin, navbarLogoutBtn;
 let themeToggleBtn, themeIcon;
-let foldersGrid, refreshFoldersBtn;
+let foldersList, refreshFoldersBtn;
 let newFolderInput, createFolderBtn;
 let dropZone, fileInput, selectFilesBtn;
 let uploadProgress, progressBar, uploadStatus;
@@ -27,6 +27,7 @@ let deleteFolderModal, deleteFolderModalInstance;
 let folderToDeleteName, confirmDeleteFolderBtn;
 let uploadConfirmModal, uploadConfirmModalInstance;
 let uploadFileCount, uploadTargetPath, confirmUploadBtn;
+let folderManagementView, fileManagementView, backToFoldersBtn;
 
 /**
  * 初始化 UI 模組
@@ -53,7 +54,7 @@ export function initUI() {
     themeToggleBtn = document.getElementById('theme-toggle-btn');
     themeIcon = document.getElementById('theme-icon');
 
-    foldersGrid = document.getElementById('folders-grid');
+    foldersList = document.getElementById('folders-list');
     refreshFoldersBtn = document.getElementById('refresh-folders-btn');
 
     newFolderInput = document.getElementById('new-folder-input');
@@ -67,6 +68,11 @@ export function initUI() {
     fileListContainer = document.getElementById('file-list');
     fileCountBadge = document.getElementById('file-count-badge');
     refreshFilesBtn = document.getElementById('refresh-files-btn');
+
+    // 視圖切換相關
+    folderManagementView = document.getElementById('folder-management-view');
+    fileManagementView = document.getElementById('file-management-view');
+    backToFoldersBtn = document.getElementById('back-to-folders-btn');
 
     // 初始化刪除分類 Modal
     deleteFolderModal = document.getElementById('deleteFolderModal');
@@ -115,6 +121,11 @@ export function initUI() {
         refreshFoldersBtn.addEventListener('click', refreshFoldersList);
     }
 
+    // 返回分類列表按鈕
+    if (backToFoldersBtn) {
+        backToFoldersBtn.addEventListener('click', showFolderManagementView);
+    }
+
     // 初始化主題切換
     initThemeToggle();
 }
@@ -124,7 +135,7 @@ export function initUI() {
  */
 function initThemeToggle() {
     // 從 localStorage 讀取主題設定
-    const savedTheme = localStorage.getItem('theme') || 'light';
+    const savedTheme = localStorage.getItem('theme') || 'dark';
     setTheme(savedTheme);
 
     // 綁定主題切換按鈕
@@ -158,6 +169,58 @@ function setTheme(theme) {
         }
     }
 }
+
+    /**
+     * 顯示分類管理視圖
+     */
+    function showFolderManagementView() {
+        if (folderManagementView && fileManagementView) {
+            folderManagementView.classList.remove('d-none');
+            fileManagementView.classList.add('d-none');
+            clearFileInput();
+            // 清空目前分類顯示
+            const currentFolderNameEl = document.getElementById('current-folder-name');
+            if (currentFolderNameEl) currentFolderNameEl.textContent = '';
+            const currentFolderNameHeaderEl = document.getElementById('current-folder-name-header');
+            if (currentFolderNameHeaderEl) currentFolderNameHeaderEl.textContent = '';
+            const navbarCurrentFolder = document.getElementById('navbar-current-folder');
+            const navbarCurrentFolderName = document.getElementById('navbar-current-folder-name');
+            if (navbarCurrentFolder && navbarCurrentFolderName) {
+                navbarCurrentFolderName.textContent = '';
+                navbarCurrentFolder.classList.add('d-none');
+            }
+        }
+    }
+
+    /**
+     * 顯示檔案管理視圖
+     */
+    function showFileManagementView(folderName) {
+        if (folderManagementView && fileManagementView) {
+            folderManagementView.classList.add('d-none');
+            fileManagementView.classList.remove('d-none');
+        
+            // 更新上傳區塊的目前分類顯示
+            const currentFolderNameEl = document.getElementById('current-folder-name');
+            if (currentFolderNameEl) {
+                currentFolderNameEl.textContent = folderName;
+            }
+
+            // 更新檔案列表標題旁的目前分類顯示
+            const currentFolderNameHeaderEl = document.getElementById('current-folder-name-header');
+            if (currentFolderNameHeaderEl) {
+                currentFolderNameHeaderEl.textContent = folderName;
+            }
+
+            // 導覽列徽章顯示目前分類
+            const navbarCurrentFolder = document.getElementById('navbar-current-folder');
+            const navbarCurrentFolderName = document.getElementById('navbar-current-folder-name');
+            if (navbarCurrentFolder && navbarCurrentFolderName) {
+                navbarCurrentFolderName.textContent = folderName;
+                navbarCurrentFolder.classList.remove('d-none');
+            }
+        }
+    }
 
 /**
  * 設定拖曳上傳功能
@@ -364,10 +427,10 @@ export async function refreshFileList() {
  */
 export async function refreshFoldersList() {
     try {
-        if (!foldersGrid) return;
+        if (!foldersList) return;
 
-        foldersGrid.innerHTML = `
-            <div class="col-12 text-center text-muted py-4">
+        foldersList.innerHTML = `
+            <div class="list-group-item text-center text-muted py-4">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">載入中...</span>
                 </div>
@@ -379,8 +442,8 @@ export async function refreshFoldersList() {
         displayFoldersList(folders);
     } catch (error) {
         showError(error.message);
-        foldersGrid.innerHTML = `
-            <div class="col-12 text-center text-danger py-4">
+        foldersList.innerHTML = `
+            <div class="list-group-item text-center text-danger py-4">
                 <i class="bi bi-exclamation-triangle display-4"></i>
                 <p class="mt-2">${error.message}</p>
             </div>
@@ -392,11 +455,11 @@ export async function refreshFoldersList() {
  * 顯示資料夾列表
  */
 export function displayFoldersList(folders) {
-    if (!foldersGrid) return;
+    if (!foldersList) return;
 
     if (folders.length === 0) {
-        foldersGrid.innerHTML = `
-            <div class="col-12 text-center text-muted py-4">
+        foldersList.innerHTML = `
+            <div class="list-group-item text-center text-muted py-4">
                 <i class="bi bi-folder-x display-4"></i>
                 <p class="mt-3">目前沒有任何分類</p>
                 <p class="small">建立一個新分類來開始使用</p>
@@ -405,62 +468,41 @@ export function displayFoldersList(folders) {
         return;
     }
 
-    // 已於資料層排序，這裡直接渲染
-    foldersGrid.innerHTML = folders.map((folder) => createFolderCard(folder)).join('');
+    // 已於資料層排序,這裡直接渲染
+    foldersList.innerHTML = folders.map((folder) => createFolderListItem(folder)).join('');
 
     // 綁定點擊事件
-    foldersGrid.querySelectorAll('.folder-card').forEach((card) => {
-        card.addEventListener('click', () => {
-            const folderName = card.dataset.folderName;
+    foldersList.querySelectorAll('.folder-list-item').forEach((item) => {
+        item.addEventListener('click', () => {
+            const folderName = item.dataset.folderName;
             selectFolder(folderName);
         });
     });
 
     // 綁定刪除按鈕事件
-    foldersGrid.querySelectorAll('.folder-delete-btn').forEach((btn) => {
+    foldersList.querySelectorAll('.folder-delete-btn').forEach((btn) => {
         btn.addEventListener('click', (e) => {
-            e.stopPropagation(); // 防止觸發卡片點擊
+            e.stopPropagation(); // 防止觸發列表項點擊
             const folderName = btn.dataset.folderName;
             showDeleteFolderModal(folderName);
         });
     });
-
-    // 依目前選擇自動選取或高亮顯示
-    const current = getCurrentSubFolder && getCurrentSubFolder();
-    const uploadSection = document.getElementById('upload-section');
-    const uploadHidden = uploadSection ? uploadSection.classList.contains('d-none') : true;
-    const folderNames = new Set(folders.map(f => f.name));
-
-    if (uploadHidden) {
-        // 初次載入或尚未顯示上傳區塊：自動選取預設/現有分類並載入檔案
-        const target = current && folderNames.has(current) ? current : folders[0].name;
-        selectFolder(target);
-    } else if (current && folderNames.has(current)) {
-        // 已顯示上傳區塊：只更新高亮，不重新載入
-        updateSelectedFolderCard(current);
-    } else if (folders.length > 0) {
-        // 目前選擇已不存在：選取第一個可用分類
-        selectFolder(folders[0].name);
-    }
 }
 
 /**
- * 建立資料夾卡片 HTML
+ * 建立資料夾列表項目 HTML
  */
-function createFolderCard(folder) {
+function createFolderListItem(folder) {
     return `
-        <div class="col-sm-6 col-md-4 col-lg-3 col-xl-2-4">
-            <div class="folder-card card h-100 shadow-sm" data-folder-name="${folder.name}" style="cursor: pointer; position: relative;">
-                <button class="btn btn-sm btn-danger folder-delete-btn d-none" 
+        <div class="list-group-item folder-list-item" data-folder-name="${folder.name}">
+            <i class="bi bi-folder folder-icon"></i>
+            <span class="folder-name">${folder.name}</span>
+            <div class="folder-actions">
+                <button class="btn btn-sm btn-danger folder-delete-btn" 
                         data-folder-name="${folder.name}"
-                        style="position: absolute; top: 8px; right: 8px; z-index: 10; padding: 0.25rem 0.5rem;"
                         title="刪除分類">
                     <i class="bi bi-trash"></i>
                 </button>
-                <div class="card-body text-center d-flex flex-column align-items-center justify-content-center p-4">
-                    <i class="folder-icon bi bi-folder text-primary display-4 mb-3"></i>
-                    <h6 class="card-title mb-0 fw-bold">${folder.name}</h6>
-                </div>
             </div>
         </div>
     `;
@@ -473,70 +515,23 @@ async function selectFolder(folderName) {
     // 設定當前資料夾
     setCurrentSubFolder(folderName);
 
-    // 高亮顯示被選取的分類卡片
-    updateSelectedFolderCard(folderName);
-
-    // 更新當前資料夾顯示
-    const currentFolderName = document.getElementById('current-folder-name');
-    if (currentFolderName) {
-        currentFolderName.textContent = folderName;
-    }
-
-    // 顯示上傳區域
-    const uploadSection = document.getElementById('upload-section');
-    if (uploadSection) {
-        uploadSection.classList.remove('d-none');
-    }
+    // 切換到檔案管理視圖
+    showFileManagementView(folderName);
 
     // 載入該分類的檔案列表
-    showInfo(`載入分類：${folderName}`);
+    // showInfo(`載入分類：${folderName}`);
     await refreshFileList();
-
-    // 滾動到檔案上傳區域
-    uploadSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
-/**
- * 更新分類卡片的選取狀態
- */
-function updateSelectedFolderCard(folderName) {
-    if (!foldersGrid) return;
-    foldersGrid.querySelectorAll('.folder-card').forEach((card) => {
-        const icon = card.querySelector('.folder-icon');
-        const deleteBtn = card.querySelector('.folder-delete-btn');
-        if (card.dataset.folderName === folderName) {
-            card.classList.add('selected');
-            // 改為實心圖示
-            if (icon) {
-                icon.classList.remove('bi-folder');
-                icon.classList.add('bi-folder-fill');
-            }
-            // 顯示刪除按鈕
-            if (deleteBtn) {
-                deleteBtn.classList.remove('d-none');
-            }
-        } else {
-            card.classList.remove('selected');
-            // 改回空心圖示
-            if (icon) {
-                icon.classList.remove('bi-folder-fill');
-                icon.classList.add('bi-folder');
-            }
-            // 隱藏刪除按鈕
-            if (deleteBtn) {
-                deleteBtn.classList.add('d-none');
-            }
-        }
-    });
 }
 
 /**
  * 顯示檔案列表
  */
 export function displayFileList(files) {
-    if (!fileListContainer || !fileCountBadge) return;
+    if (!fileListContainer) return;
 
-    fileCountBadge.textContent = files.length;
+    if (fileCountBadge) {
+        fileCountBadge.textContent = files.length;
+    }
 
     if (files.length === 0) {
         fileListContainer.innerHTML = `
@@ -674,6 +669,21 @@ export function getNavbarLogoutBtn() {
 }
 
 /**
+ * 清空檔案輸入與上傳狀態
+ */
+function clearFileInput() {
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    if (uploadProgress && progressBar && uploadStatus) {
+        uploadProgress.classList.add('d-none');
+        progressBar.style.width = '0%';
+        progressBar.textContent = '0%';
+        uploadStatus.textContent = '';
+    }
+}
+
+/**
  * 處理建立資料夾
  */
 async function handleCreateFolder() {
@@ -760,11 +770,9 @@ async function handleDeleteFolder(folderName) {
         // 稍微延遲後重新載入資料夾列表,讓 GitHub API 有時間更新
         await new Promise(resolve => setTimeout(resolve, 1000));
         await refreshFoldersList();
-
-        // 隱藏上傳區域
-        const uploadSection = document.getElementById('upload-section');
-        if (uploadSection) {
-            uploadSection.classList.add('d-none');
+        // 回到分類管理視圖
+        if (typeof showFolderManagementView === 'function') {
+            showFolderManagementView();
         }
 
         // 恢復按鈕狀態

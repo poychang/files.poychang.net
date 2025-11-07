@@ -187,13 +187,28 @@ function handleLogout() {
     // 隱藏已登入區域
     const loginSection = document.getElementById('login-section');
     const authenticatedSection = document.getElementById('authenticated-section');
-    const uploadSection = document.getElementById('upload-section');
+    const folderManagementView = document.getElementById('folder-management-view');
+    const fileManagementView = document.getElementById('file-management-view');
     const pageHeader = document.getElementById('page-header');
     
     if (loginSection) loginSection.classList.remove('d-none');
     if (authenticatedSection) authenticatedSection.classList.add('d-none');
-    if (uploadSection) uploadSection.classList.add('d-none');
+    // 重置到分類管理視圖
+    if (folderManagementView) folderManagementView.classList.remove('d-none');
+    if (fileManagementView) fileManagementView.classList.add('d-none');
     if (pageHeader) pageHeader.classList.remove('d-none');
+
+    // 清空目前分類顯示
+    const currentFolderNameEl = document.getElementById('current-folder-name');
+    if (currentFolderNameEl) currentFolderNameEl.textContent = '';
+    const currentFolderNameHeaderEl = document.getElementById('current-folder-name-header');
+    if (currentFolderNameHeaderEl) currentFolderNameHeaderEl.textContent = '';
+    const navbarCurrentFolder = document.getElementById('navbar-current-folder');
+    const navbarCurrentFolderName = document.getElementById('navbar-current-folder-name');
+    if (navbarCurrentFolder && navbarCurrentFolderName) {
+        navbarCurrentFolderName.textContent = '';
+        navbarCurrentFolder.classList.add('d-none');
+    }
     
     showSuccess('已登出');
 }
