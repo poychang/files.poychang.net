@@ -227,12 +227,6 @@ function setTheme(theme) {
             if (currentFolderNameEl) currentFolderNameEl.textContent = '';
             const currentFolderNameHeaderEl = document.getElementById('current-folder-name-header');
             if (currentFolderNameHeaderEl) currentFolderNameHeaderEl.textContent = '';
-            const navbarCurrentFolder = document.getElementById('navbar-current-folder');
-            const navbarCurrentFolderName = document.getElementById('navbar-current-folder-name');
-            if (navbarCurrentFolder && navbarCurrentFolderName) {
-                navbarCurrentFolderName.textContent = '';
-                navbarCurrentFolder.classList.add('d-none');
-            }
         }
     }
 
@@ -254,14 +248,6 @@ function setTheme(theme) {
             const currentFolderNameHeaderEl = document.getElementById('current-folder-name-header');
             if (currentFolderNameHeaderEl) {
                 currentFolderNameHeaderEl.textContent = folderName;
-            }
-
-            // 導覽列徽章顯示目前分類
-            const navbarCurrentFolder = document.getElementById('navbar-current-folder');
-            const navbarCurrentFolderName = document.getElementById('navbar-current-folder-name');
-            if (navbarCurrentFolder && navbarCurrentFolderName) {
-                navbarCurrentFolderName.textContent = folderName;
-                navbarCurrentFolder.classList.remove('d-none');
             }
         }
     }

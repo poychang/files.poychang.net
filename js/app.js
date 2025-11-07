@@ -203,12 +203,6 @@ function handleLogout() {
     if (currentFolderNameEl) currentFolderNameEl.textContent = '';
     const currentFolderNameHeaderEl = document.getElementById('current-folder-name-header');
     if (currentFolderNameHeaderEl) currentFolderNameHeaderEl.textContent = '';
-    const navbarCurrentFolder = document.getElementById('navbar-current-folder');
-    const navbarCurrentFolderName = document.getElementById('navbar-current-folder-name');
-    if (navbarCurrentFolder && navbarCurrentFolderName) {
-        navbarCurrentFolderName.textContent = '';
-        navbarCurrentFolder.classList.add('d-none');
-    }
     
     showSuccess('已登出');
 }
