@@ -31,11 +31,6 @@ export async function getRepoContents(path) {
         repo: CONFIG.defaultRepo.repo,
         path: path,
         ref: CONFIG.defaultRepo.branch,
-        headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-        },
         // 添加時間戳參數避免瀏覽器快取
         timestamp: Date.now()
     });
@@ -107,11 +102,6 @@ export async function checkFileExists(path) {
             repo: CONFIG.defaultRepo.repo,
             path: path,
             ref: CONFIG.defaultRepo.branch,
-            headers: {
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0'
-            },
             // 添加時間戳參數避免瀏覽器快取
             timestamp: Date.now()
         });
