@@ -76,8 +76,8 @@ export function emitAuthLogout() {
 /**
  * 發布檔案選擇事件
  */
-export function emitFilesSelected(files) {
-    emit(CUSTOM_EVENTS.FILES_SELECTED, { files });
+export function emitFilesSelected(files, validation = null) {
+    emit(CUSTOM_EVENTS.FILES_SELECTED, { files, validation });
 }
 
 /**

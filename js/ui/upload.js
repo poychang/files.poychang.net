@@ -4,9 +4,8 @@
  */
 
 import { DOM_IDS, emitFilesSelected } from '../core/index.js';
-import { showUploadConfirmModal } from './modal.js';
+import { buildUploadSelectionFeedback, getSupportedUploadExtensions, validateUploadSelection } from '../repo/index.js';
 import { showError, showWarning } from './toast.js';
-import { getOversizedFiles, buildOversizeErrorMessage } from './platform-notice.js';
 import { updateProgressBar, resetProgressBar } from './loading.js';
 
 // DOM 元素
@@ -28,6 +27,9 @@ export function initUpload() {
     if (dropZone && fileInput && selectFilesBtn) {
         setupDragAndDrop();
         selectFilesBtn.addEventListener('click', () => fileInput.click());
+        fileInput.accept = getSupportedUploadExtensions()
+            .map((extension) => `.${extension}`)
+            .join(',');
     }
 
     // 監聽檔案選擇事件
@@ -110,24 +112,20 @@ function handleDrop(e) {
  * @param {FileList} files - 檔案列表
  */
 function handleFilesSelected(files) {
-    const selectedFiles = Array.from(files);
-    const oversizedFiles = getOversizedFiles(selectedFiles);
-    const validFiles = selectedFiles.filter((file) => !oversizedFiles.includes(file));
+    const selectionResult = validateUploadSelection(files);
+    const feedbackMessage = buildUploadSelectionFeedback(selectionResult);
 
-    if (oversizedFiles.length > 0) {
-        const message = buildOversizeErrorMessage(oversizedFiles);
-
-        if (validFiles.length === 0) {
-            showError(message);
+    if (feedbackMessage) {
+        if (selectionResult.validFiles.length === 0) {
+            showError(feedbackMessage);
             clearFileInput();
             return;
         }
 
-        showWarning(`${message} 其餘 ${validFiles.length} 個檔案會繼續進入上傳確認。`);
+        showWarning(feedbackMessage);
     }
 
-    // 使用 Core 層事件系統觸發檔案選擇事件
-    emitFilesSelected(validFiles);
+    emitFilesSelected(selectionResult.validFiles, selectionResult);
 }
 
 /**

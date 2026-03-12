@@ -220,6 +220,7 @@ export const ERROR_MESSAGES = {
 export const PLATFORM_LIMITS = {
     MAX_FILE_SIZE_BYTES: 100 * 1024 * 1024,
     MAX_FILE_SIZE_LABEL: '100 MB',
+    MAX_UPLOAD_FILE_COUNT: 50,
     REPOSITORY_GUIDANCE:
         '這個工具適合管理少量靜態資產與分享檔案，不適合作為長期累積大型二進位檔的通用雲端硬碟。',
     API_RATE_LIMIT_GUIDANCE:

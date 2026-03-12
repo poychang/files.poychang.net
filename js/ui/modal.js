@@ -107,7 +107,7 @@ export function hideDeleteFileModal() {
  * @param {string} targetPath - 目標路徑
  * @param {Function} onConfirm - 確認上傳的回調函數
  * @param {Object} [options] - 額外顯示選項
- * @param {string[]} [options.overwriteFiles] - 將會覆蓋的檔案名稱
+ * @param {Object} [options.preflight] - 上傳前驗證摘要
  */
 export function showUploadConfirmModal(fileCount, targetPath, onConfirm, options = {}) {
     if (!uploadConfirmModalInstance) return;
@@ -120,7 +120,7 @@ export function showUploadConfirmModal(fileCount, targetPath, onConfirm, options
         uploadTargetPath.textContent = targetPath || '根目錄';
     }
     if (uploadConfirmNotice) {
-        uploadConfirmNotice.innerHTML = buildUploadConfirmNotice(options.overwriteFiles || []);
+        uploadConfirmNotice.innerHTML = buildUploadConfirmNotice(options.preflight || {});
     }
 
     // 綁定確認按鈕事件
@@ -147,13 +147,29 @@ export function showUploadConfirmModal(fileCount, targetPath, onConfirm, options
     uploadConfirmModalInstance.show();
 }
 
-function buildUploadConfirmNotice(overwriteFiles) {
+function buildUploadConfirmNotice(preflight) {
     const defaultItems = [
         `單一檔案上限為 ${PLATFORM_LIMITS.MAX_FILE_SIZE_LABEL}。`,
+        `單次最多上傳 ${PLATFORM_LIMITS.MAX_UPLOAD_FILE_COUNT} 個檔案。`,
         PLATFORM_LIMITS.API_RATE_LIMIT_GUIDANCE,
         PLATFORM_LIMITS.PAGES_CACHE_GUIDANCE,
     ];
 
+    const skippedNotice = preflight.skippedFileCount > 0
+        ? `
+            <div class="alert alert-danger small mb-3">
+                <div class="fw-semibold mb-2">
+                    <i class="bi bi-x-octagon me-2"></i>
+                    已略過 ${preflight.skippedFileCount} 個不符合規則的檔案
+                </div>
+                <ul class="mb-0 ps-3">
+                    ${buildIssueList(preflight.blockingIssues || [])}
+                </ul>
+            </div>
+        `
+        : '';
+
+    const overwriteFiles = preflight.overwriteFiles || [];
     const overwriteNotice = overwriteFiles.length === 0
         ? `
             <div class="alert alert-success small mb-3">
@@ -171,11 +187,27 @@ function buildUploadConfirmNotice(overwriteFiles) {
         `;
 
     return `
+        ${skippedNotice}
         ${overwriteNotice}
         <ul class="small text-muted mb-0 ps-3">
             ${defaultItems.map((item) => `<li>${item}</li>`).join('')}
         </ul>
     `;
+}
+
+function buildIssueList(issues) {
+    const maxVisibleIssues = 5;
+    const visibleIssues = issues.slice(0, maxVisibleIssues);
+    const remainingCount = issues.length - visibleIssues.length;
+    const listItems = visibleIssues
+        .map((issue) => `<li>${escapeHtml(issue.message)}</li>`)
+        .join('');
+
+    if (remainingCount <= 0) {
+        return listItems;
+    }
+
+    return `${listItems}<li>另有 ${remainingCount} 個問題未展開。</li>`;
 }
 
 function escapeHtml(value) {

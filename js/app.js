@@ -5,7 +5,7 @@
 
 import { initCore, CONFIG, CUSTOM_EVENTS, DOM_IDS, TOKEN_STORAGE_MODES, createLogger } from './core/index.js';
 import { initAuth } from './auth.js';
-import { initRepo, prepareUploadBatch, uploadFiles, getCurrentSubFolder } from './repo/index.js';
+import { initRepo, prepareUploadBatch, uploadFiles, getCurrentSubFolder, validateUploadSelection } from './repo/index.js';
 import {
     initUI,
     showMessage,
@@ -66,7 +66,7 @@ function setupEventListeners() {
     // 監聽自訂檔案選擇事件(來自 upload.js 的拖曳或按鈕選擇)
     window.addEventListener(CUSTOM_EVENTS.FILES_SELECTED, (e) => {
         if (e.detail.files.length > 0) {
-            handleFileUpload(Array.from(e.detail.files));
+            handleFileUpload(Array.from(e.detail.files), e.detail.validation || null);
         }
     });
 }
@@ -74,7 +74,7 @@ function setupEventListeners() {
 /**
  * 處理檔案上傳
  */
-async function handleFileUpload(files) {
+async function handleFileUpload(files, selectionValidation = null) {
     if (!files || files.length === 0) {
         showError('請選擇檔案');
         return;
@@ -83,13 +83,14 @@ async function handleFileUpload(files) {
     try {
         const currentFolder = getCurrentSubFolder();
         const targetPath = `${CONFIG.fileBasePath}/${currentFolder}/`;
-        const uploadBatch = await prepareUploadBatch(files);
+        const normalizedSelection = selectionValidation || validateUploadSelection(files);
+        const uploadBatch = await prepareUploadBatch(files, { selectionResult: normalizedSelection });
 
         // 使用 Modal 確認上傳
         showUploadConfirmModal(files.length, targetPath, async () => {
             await performUpload(files, uploadBatch.existingFilesIndex);
         }, {
-            overwriteFiles: uploadBatch.overwriteFiles,
+            preflight: uploadBatch.preflight,
         });
     } catch (error) {
         showError(error.userMessage || `無法確認上傳內容：${error.message}`);

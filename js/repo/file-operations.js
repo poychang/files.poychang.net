@@ -13,6 +13,7 @@ import {
     isGitHubErrorStatus,
 } from './github-api.js';
 import { fileToBase64, getFileType } from './utils.js';
+import { buildUploadPreflightSummary, validateUploadSelection } from './upload-validation.js';
 import { API_ERROR_CODES, CONFIG, ERROR_MESSAGES, createLogger } from '../core/index.js';
 
 const logger = createLogger('FileOperations');
@@ -71,17 +72,20 @@ export async function getExistingFilesIndex(subFolder) {
 /**
  * 建立本次上傳的批次資訊
  * @param {FileList|Array<File>} files - 要上傳的檔案列表
- * @returns {Promise<{existingFilesIndex: Map<string, string>, overwriteFiles: string[]}>} 批次資訊
+ * @returns {Promise<{existingFilesIndex: Map<string, string>, overwriteFiles: string[], preflight: Object}>} 批次資訊
  */
-export async function prepareUploadBatch(files) {
+export async function prepareUploadBatch(files, options = {}) {
+    const selectionResult = options.selectionResult || validateUploadSelection(files);
+    const validFiles = selectionResult.validFiles;
     const existingFilesIndex = await getExistingFilesIndex();
-    const overwriteFiles = [...new Set(Array.from(files)
+    const overwriteFiles = [...new Set(Array.from(validFiles)
         .map((file) => file.name)
         .filter((filename) => existingFilesIndex.has(filename)))];
 
     return {
         existingFilesIndex,
         overwriteFiles,
+        preflight: buildUploadPreflightSummary(selectionResult, overwriteFiles),
     };
 }
 

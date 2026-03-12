@@ -25,6 +25,13 @@ import {
     getFileExtension,
     getSupportedExtensions
 } from './utils.js';
+import {
+    UPLOAD_VALIDATION_CODES,
+    validateUploadSelection,
+    buildUploadPreflightSummary,
+    buildUploadSelectionFeedback,
+    getSupportedUploadExtensions
+} from './upload-validation.js';
 
 // 檔案操作
 import {
@@ -120,6 +127,14 @@ export {
     isValidFilename,
     getFileExtension,
     getSupportedExtensions
+};
+
+export {
+    UPLOAD_VALIDATION_CODES,
+    validateUploadSelection,
+    buildUploadPreflightSummary,
+    buildUploadSelectionFeedback,
+    getSupportedUploadExtensions
 };
 
 // 檔案操作相關
