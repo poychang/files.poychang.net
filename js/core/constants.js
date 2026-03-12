@@ -63,19 +63,10 @@ export const VIEW_TYPES = {
 
 /**
  * 自訂事件名稱
+ * 僅保留目前跨模組實際使用的事件；新增事件前先確認 callback 注入無法滿足需求。
  */
 export const CUSTOM_EVENTS = {
-    AUTH_SUCCESS: 'auth:success',
     AUTH_LOGOUT: 'auth:logout',
-    FILES_SELECTED: 'files:selected',
-    FOLDER_SELECTED: 'folder:selected',
-    FOLDER_CHANGED: 'folder:changed',
-    FOLDER_CREATED: 'folder:created',
-    FOLDER_DELETED: 'folder:deleted',
-    FILE_UPLOADED: 'file:uploaded',
-    FILE_DELETED: 'file:deleted',
-    FILE_LIST_UPDATED: 'file-list:updated',
-    FOLDER_LIST_UPDATED: 'folder-list:updated',
 };
 
 /**

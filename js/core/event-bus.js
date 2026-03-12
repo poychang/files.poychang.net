@@ -3,8 +3,6 @@
  * 提供應用程式級別的事件發布/訂閱機制
  */
 
-import { CUSTOM_EVENTS } from './constants.js';
-
 /**
  * 發布自訂事件
  * @param {string} eventName - 事件名稱
@@ -28,61 +26,7 @@ export function emit(eventName, detail = null) {
 export function on(eventName, handler) {
     window.addEventListener(eventName, handler);
 
-    // 返回取消訂閱函數
     return () => {
         window.removeEventListener(eventName, handler);
     };
-}
-
-/**
- * 訂閱一次性事件（觸發後自動取消訂閱）
- * @param {string} eventName - 事件名稱
- * @param {Function} handler - 事件處理函數
- */
-export function once(eventName, handler) {
-    const wrappedHandler = (event) => {
-        handler(event);
-        window.removeEventListener(eventName, wrappedHandler);
-    };
-
-    window.addEventListener(eventName, wrappedHandler);
-}
-
-/**
- * 取消事件訂閱
- * @param {string} eventName - 事件名稱
- * @param {Function} handler - 事件處理函數
- */
-export function off(eventName, handler) {
-    window.removeEventListener(eventName, handler);
-}
-
-// ========== 預定義事件發射器 ==========
-
-/**
- * 發布認證成功事件
- */
-export function emitAuthSuccess(user) {
-    emit(CUSTOM_EVENTS.AUTH_SUCCESS, { user });
-}
-
-/**
- * 發布登出事件
- */
-export function emitAuthLogout() {
-    emit(CUSTOM_EVENTS.AUTH_LOGOUT);
-}
-
-/**
- * 發布檔案選擇事件
- */
-export function emitFilesSelected(files, validation = null) {
-    emit(CUSTOM_EVENTS.FILES_SELECTED, { files, validation });
-}
-
-/**
- * 發布分類選取事件
- */
-export function emitFolderSelected(folderName) {
-    emit(CUSTOM_EVENTS.FOLDER_SELECTED, { folderName });
 }

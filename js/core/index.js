@@ -43,12 +43,6 @@ export {
 export {
     emit,
     on,
-    once,
-    off,
-    emitAuthSuccess,
-    emitAuthLogout,
-    emitFilesSelected,
-    emitFolderSelected
 } from './event-bus.js';
 
 // ========== 日誌模組 ==========

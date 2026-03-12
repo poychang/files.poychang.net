@@ -3,7 +3,7 @@
  * 整合所有模組並初始化應用程式
  */
 
-import { initCore, CONFIG, CUSTOM_EVENTS, DOM_IDS, TOKEN_STORAGE_MODES, createLogger } from './core/index.js';
+import { initCore, CONFIG, CUSTOM_EVENTS, DOM_IDS, TOKEN_STORAGE_MODES, createLogger, on } from './core/index.js';
 import { initAuth } from './auth.js';
 import {
     initRepo,
@@ -83,7 +83,7 @@ function initApp() {
     setupEventListeners();
 
     // 監聽登出事件
-    window.addEventListener(CUSTOM_EVENTS.AUTH_LOGOUT, handleLogout);
+    on(CUSTOM_EVENTS.AUTH_LOGOUT, handleLogout);
 
     logger.info('Application initialized successfully');
 }

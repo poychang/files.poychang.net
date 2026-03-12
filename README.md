@@ -133,7 +133,7 @@ export const CONFIG = {
 - API Client：`@octokit/core`（由 `esm.sh` 載入）
 - 託管：GitHub Pages
 - 認證：GitHub Personal Access Token
-- 事件策略：以 `CUSTOM_EVENTS` 與 `event-bus` 為跨模組事件入口
+- 事件策略：只有真正跨模組且不適合 callback 注入的流程才使用 `CUSTOM_EVENTS` 與 `event-bus`
 - 部署型態：純靜態檔案，無 bundler、無 transpile、無 server runtime
 
 ## 已知限制與取捨
@@ -162,7 +162,8 @@ export const CONFIG = {
 
 ## 維護指引
 
-- 新增跨模組事件時，先更新 `js/core/constants.js` 的 `CUSTOM_EVENTS`
+- 目前唯一保留的跨模組事件是 `auth:logout`，用來同步 app / repo 狀態重置
+- 新增跨模組事件前，先確認是否能以 handler 注入解決；只有需要多個模組同步訂閱時才擴充 `js/core/constants.js` 的 `CUSTOM_EVENTS`
 - 新增 DOM 節點識別碼時，先更新 `js/core/constants.js` 的 `DOM_IDS`
 - 主要初始化流程在 `js/app.js`
 - UI 子模組統一由 `js/ui/index.js` 串接
@@ -173,7 +174,7 @@ export const CONFIG = {
 
 1. 開啟瀏覽器開發者工具觀察 logger 輸出
 2. 檢查 `js/core/config.js` 的 repository、branch 與 GitHub Pages 設定是否正確
-3. 檢查 `js/core/event-bus.js` 與 `CUSTOM_EVENTS` 是否一致
+3. 檢查 `js/core/event-bus.js`、`CUSTOM_EVENTS` 與實際使用點是否一致
 4. 檢查 GitHub API 回應是否帶出權限或路徑錯誤
 
 ## 授權

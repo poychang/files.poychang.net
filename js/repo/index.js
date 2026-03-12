@@ -3,7 +3,7 @@
  * 只保留 app.js 啟動流程與上傳協調需要的高階資料層 API。
  */
 
-import { CUSTOM_EVENTS } from '../core/index.js';
+import { CUSTOM_EVENTS, on } from '../core/index.js';
 import {
     validateUploadSelection,
     buildUploadPreflightSummary,
@@ -47,7 +47,7 @@ export function initRepo(config) {
     }
 
     // 監聽登出事件
-    window.addEventListener(CUSTOM_EVENTS.AUTH_LOGOUT, handleLogout);
+    on(CUSTOM_EVENTS.AUTH_LOGOUT, handleLogout);
 }
 
 /**

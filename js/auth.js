@@ -5,11 +5,12 @@
 
 import { Octokit } from "https://esm.sh/@octokit/core";
 import {
+    CUSTOM_EVENTS,
     DOM_IDS,
     STORAGE_KEYS,
     TOKEN_STORAGE_MODES,
     ERROR_MESSAGES,
-    emitAuthLogout,
+    emit,
     createLogger
 } from './core/index.js';
 import { translateGitHubError, getGitHubErrorDetails } from './repo/github-api.js';
@@ -158,7 +159,7 @@ function logout() {
     tokenInput.value = '';
     resetLoginForm();
 
-    emitAuthLogout();
+    emit(CUSTOM_EVENTS.AUTH_LOGOUT);
 }
 
 /**
