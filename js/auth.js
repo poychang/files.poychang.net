@@ -13,7 +13,7 @@ import {
     emit,
     createLogger
 } from './core/index.js';
-import { translateGitHubError, getGitHubErrorDetails } from './repo/github-api.js';
+import { translateGitHubError, getGitHubErrorDetails } from './repo/github-error.js';
 
 const logger = createLogger('Auth');
 

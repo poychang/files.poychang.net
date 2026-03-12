@@ -62,6 +62,20 @@ export const CONFIG = {
 2. `storage/` 目錄已存在，且至少保留一個 `.gitkeep`
 3. 瀏覽器可以連到 GitHub API、[jsDelivr](https://www.jsdelivr.com/) 與 [esm.sh](https://esm.sh/)
 
+### 3.1 執行自動化測試
+
+專案已提供最小測試基線，優先保護 `js/repo/` 內不依賴 DOM 與真實 GitHub API 的規則邏輯。
+
+```bash
+npm test
+```
+
+目前測試涵蓋：
+
+- `js/repo/utils.js` 的檔名/分類名稱清理、類型判斷與檔案大小格式化
+- `js/repo/upload-validation.js` 的副檔名白名單、批次上傳限制、重複檔名與上傳前摘要
+- `js/repo/github-error.js` 的 GitHub API 錯誤轉譯與錯誤細節整理
+
 ### 4. 啟用 GitHub Pages
 
 1. 到 repository 的 `Settings -> Pages`
@@ -131,6 +145,7 @@ export const CONFIG = {
 - 前端：原生 JavaScript ES Modules
 - UI：Bootstrap 5、Bootstrap Icons
 - API Client：`@octokit/core`（由 `esm.sh` 載入）
+- 測試：Node.js 內建測試器（`node --test`）
 - 託管：GitHub Pages
 - 認證：GitHub Personal Access Token
 - 事件策略：只有真正跨模組且不適合 callback 注入的流程才使用 `CUSTOM_EVENTS` 與 `event-bus`
