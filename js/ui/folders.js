@@ -8,8 +8,8 @@ import {
     createSubFolder,
     deleteSubFolder,
     waitForFolderState,
-    setCurrentSubFolder,
-} from '../repo/index.js';
+} from '../repo/folder-operations.js';
+import { setCurrentSubFolder } from '../repo/file-operations.js';
 import { DOM_IDS, emitFolderSelected } from '../core/index.js';
 import { showSuccess, showError } from './toast.js';
 import {

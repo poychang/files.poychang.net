@@ -6,9 +6,8 @@
 import {
     listFiles,
     deleteFile,
-    getFileIcon,
-    formatFileSize,
-} from '../repo/index.js';
+} from '../repo/file-operations.js';
+import { getFileIcon, formatFileSize } from '../repo/utils.js';
 import { DOM_IDS, CUSTOM_EVENTS } from '../core/index.js';
 import { showSuccess, showError } from './toast.js';
 import { showLoading, showEmptyState, showErrorState } from './loading.js';

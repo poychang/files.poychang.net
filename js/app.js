@@ -8,7 +8,6 @@ import { initAuth } from './auth.js';
 import { initRepo, prepareUploadBatch, uploadFiles, getCurrentSubFolder, validateUploadSelection } from './repo/index.js';
 import {
     initUI,
-    showMessage,
     showSuccess,
     showError,
     showInfo,

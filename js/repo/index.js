@@ -1,61 +1,21 @@
 /**
- * Repo 模組統一入口
- * 整合所有 Repo 子模組並提供統一的初始化與導出
+ * Repo 模組應用程式入口。
+ * 只保留 app.js 啟動流程與上傳協調需要的高階資料層 API。
  */
 
-import { CONFIG, CUSTOM_EVENTS } from '../core/index.js';
-
-// GitHub API 基礎
+import { CUSTOM_EVENTS } from '../core/index.js';
 import {
-    ensureOctokit,
-    getRepoContents,
-    putRepoFile,
-    deleteRepoFile,
-    checkFileExists
-} from './github-api.js';
-
-// 工具函數
-import {
-    fileToBase64,
-    getFileType,
-    getFileIcon,
-    formatFileSize,
-    sanitizeFolderName,
-    isValidFilename,
-    getFileExtension,
-    getSupportedExtensions
-} from './utils.js';
-import {
-    UPLOAD_VALIDATION_CODES,
     validateUploadSelection,
     buildUploadPreflightSummary,
     buildUploadSelectionFeedback,
-    getSupportedUploadExtensions
+    getSupportedUploadExtensions,
 } from './upload-validation.js';
-
-// 檔案操作
 import {
-    setCurrentSubFolder,
     getCurrentSubFolder,
-    getFileUrl,
     prepareUploadBatch,
-    uploadFile,
     uploadFiles,
-    listFiles,
-    deleteFile,
-    getExistingFilesIndex,
-    resetCurrentFolder
+    resetCurrentFolder,
 } from './file-operations.js';
-
-// 資料夾操作
-import {
-    createSubFolder,
-    listSubFolders,
-    deleteSubFolder,
-    waitForFolderState,
-    folderExists,
-    getFolderFileCount
-} from './folder-operations.js';
 
 // 回調函數
 let onFileOperationSuccess = null;
@@ -103,59 +63,15 @@ export function getFailCallback() {
     return onFileOperationFail;
 }
 
-// ============================================
-// 重新導出所有子模組的公開 API
-// 確保向後相容性
-// ============================================
-
-// GitHub API 相關
 export {
-    ensureOctokit,
-    getRepoContents,
-    putRepoFile,
-    deleteRepoFile,
-    checkFileExists
-};
-
-// 工具函數相關
-export {
-    fileToBase64,
-    getFileType,
-    getFileIcon,
-    formatFileSize,
-    sanitizeFolderName,
-    isValidFilename,
-    getFileExtension,
-    getSupportedExtensions
-};
-
-export {
-    UPLOAD_VALIDATION_CODES,
     validateUploadSelection,
     buildUploadPreflightSummary,
     buildUploadSelectionFeedback,
-    getSupportedUploadExtensions
+    getSupportedUploadExtensions,
 };
 
-// 檔案操作相關
 export {
-    setCurrentSubFolder,
     getCurrentSubFolder,
-    getFileUrl,
     prepareUploadBatch,
-    uploadFile,
     uploadFiles,
-    listFiles,
-    deleteFile,
-    getExistingFilesIndex
-};
-
-// 資料夾操作相關
-export {
-    createSubFolder,
-    listSubFolders,
-    deleteSubFolder,
-    waitForFolderState,
-    folderExists,
-    getFolderFileCount
 };

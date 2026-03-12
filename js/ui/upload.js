@@ -4,7 +4,11 @@
  */
 
 import { DOM_IDS, emitFilesSelected } from '../core/index.js';
-import { buildUploadSelectionFeedback, getSupportedUploadExtensions, validateUploadSelection } from '../repo/index.js';
+import {
+    buildUploadSelectionFeedback,
+    getSupportedUploadExtensions,
+    validateUploadSelection,
+} from '../repo/upload-validation.js';
 import { showError, showWarning } from './toast.js';
 import { updateProgressBar, resetProgressBar } from './loading.js';
 
