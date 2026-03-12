@@ -12,7 +12,7 @@ import {
     emitAuthLogout,
     createLogger
 } from './core/index.js';
-import { translateGitHubError } from './repo/github-api.js';
+import { translateGitHubError, getGitHubErrorDetails } from './repo/github-api.js';
 
 const logger = createLogger('Auth');
 
@@ -91,7 +91,7 @@ async function checkExistingAuth() {
             onAuthSuccess(user, { auto: true, mode });
         }
     } catch (error) {
-        logger.warn('Token invalid, clearing authentication', { message: error.message });
+        logger.warn('Token invalid, clearing authentication', getGitHubErrorDetails(error) || { message: error.message });
         clearToken();
         octokit = null;
         showLoginState();
@@ -139,12 +139,12 @@ async function loginWithToken() {
             onAuthSuccess(user, { auto: false, mode });
         }
     } catch (error) {
-        logger.error('Authentication failed', error);
+        const translatedError = translateGitHubError(error, '登入 GitHub');
+        logger.error('Authentication failed', getGitHubErrorDetails(translatedError));
         clearToken();
         octokit = null;
         if (onAuthFail) {
-            const translatedError = translateGitHubError(error, '登入 GitHub');
-            onAuthFail(`${ERROR_MESSAGES.INVALID_TOKEN}。${translatedError.message}`);
+            onAuthFail(`${ERROR_MESSAGES.INVALID_TOKEN}。${translatedError.userMessage}`);
         }
     } finally {
         tokenLoginBtn.disabled = false;

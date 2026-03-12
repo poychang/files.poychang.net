@@ -136,9 +136,22 @@ export const CONFIG = {
 - 這個工具較適合少量靜態資產與分享檔案；長期累積大型二進位檔會讓 repository 歷史與同步成本快速增加
 - GitHub Contents API 有速率限制；短時間大量上傳、刪除或重新整理時，請求可能被暫時限制
 - GitHub Pages 與 CDN 快取更新通常需要數十秒，偶爾可能更久；剛上傳或覆蓋後不一定會立即對外可見
-- 建立或刪除分類後，介面會延遲約 1 秒再刷新，以等待 GitHub API 狀態一致
+- 建立或刪除分類後，介面會以短輪詢等待 GitHub API 狀態一致；若同步逾時，會提示使用者稍後再確認
 - 檔案列表會略過 `.gitkeep`
 - 刪除分類使用 Bootstrap Modal 確認；刪除單一檔案目前仍使用瀏覽器原生 `confirm()`
+
+## 常見 GitHub API 錯誤對照
+
+| 情境 | HTTP 狀態 | UI 顯示訊息方向 | 維護與除錯重點 |
+| --- | --- | --- | --- |
+| Token 無效、過期、尚未完成授權 | 401 | GitHub 驗證失敗，Token 可能無效、已過期，或尚未完成必要授權。 | 重新產生 PAT，確認 repository scope 與有效期限。 |
+| Token 沒有足夠權限 | 403 | 某操作被 GitHub 拒絕，並提示 GitHub 接受的權限或 `Contents: Read and write`。 | 檢查 fine-grained PAT 是否限定正確 repository，且 `Contents` 為 `Read and write`。 |
+| API 速率限制 | 403 | GitHub API 已達速率限制，請稍後再試。 | 查看 logger 的 `code/status/debugMessage`，確認是否為 rate limit，而非一般權限問題。 |
+| 路徑或 repository 不存在，或無法讀取該資源 | 404 | 找不到指定的 repository 或路徑，或目前 Token 無法讀取該資源。 | 檢查 `js/core/config.js` 的 owner / repo / branch / path，並確認 PAT 有讀取權限。 |
+| 內容衝突，例如版本不同步 | 409 | GitHub 偵測到內容衝突，請重新整理後再試。 | 重新整理列表後重試，必要時比對最新 SHA。 |
+| 路徑、檔名或請求內容無效 | 422 | 請求內容無效，請確認路徑、檔名與內容格式。 | 檢查分類名稱、檔名、Base64 內容與 GitHub Contents API 限制。 |
+
+目前 repo / auth 層會統一拋出帶有 `code`、`status`、`userMessage`、`debugMessage` 的錯誤物件。UI 預設顯示 `userMessage`，logger 則保留技術細節，方便後續追查。
 
 ## 維護指引
 

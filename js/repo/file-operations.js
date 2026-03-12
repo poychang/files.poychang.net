@@ -3,9 +3,17 @@
  * 處理檔案的上傳、列表、刪除等操作
  */
 
-import { putRepoFile, deleteRepoFile, getRepoContents, checkFileExists } from './github-api.js';
+import {
+    putRepoFile,
+    deleteRepoFile,
+    getRepoContents,
+    checkFileExists,
+    translateGitHubError,
+    getGitHubErrorDetails,
+    isGitHubErrorStatus,
+} from './github-api.js';
 import { fileToBase64, getFileType } from './utils.js';
-import { CONFIG, ERROR_MESSAGES, createLogger } from '../core/index.js';
+import { API_ERROR_CODES, CONFIG, ERROR_MESSAGES, createLogger } from '../core/index.js';
 
 const logger = createLogger('FileOperations');
 
@@ -78,8 +86,9 @@ export async function uploadFile(file) {
             sha: data.content.sha,
         };
     } catch (error) {
-        logger.error('Upload error:', error);
-        throw error;
+        const translatedError = translateGitHubError(error, `上傳檔案「${file.name}」`);
+        logger.error('Upload error', getGitHubErrorDetails(translatedError));
+        throw translatedError;
     }
 }
 
@@ -108,7 +117,8 @@ export async function uploadFiles(files, progressCallback) {
                 });
             }
         } catch (error) {
-            results.push({ success: false, file: file.name, error: error.message });
+            const translatedError = translateGitHubError(error, `上傳檔案「${file.name}」`);
+            results.push({ success: false, file: file.name, error: translatedError.userMessage });
         }
     }
 
@@ -142,11 +152,11 @@ export async function listFiles(subFolder) {
 
         return files;
     } catch (error) {
-        if (error.status === 404) {
+        if (isGitHubErrorStatus(error, API_ERROR_CODES.NOT_FOUND)) {
             // 分類不存在，返回空陣列
             return [];
         }
-        throw new Error(`取得檔案列表失敗：${error.message}`);
+        throw translateGitHubError(error, `取得分類「${folder}」的檔案列表`);
     }
 }
 
@@ -163,7 +173,7 @@ export async function deleteFile(filename, sha) {
         await deleteRepoFile(path, sha, `Delete ${filename}`);
         return true;
     } catch (error) {
-        throw new Error(`刪除檔案失敗：${error.message}`);
+        throw translateGitHubError(error, `刪除檔案「${filename}」`);
     }
 }
 

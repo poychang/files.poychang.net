@@ -3,9 +3,15 @@
  * 處理資料夾的建立、列表、刪除等操作
  */
 
-import { getRepoContents, putRepoFile, deleteRepoFile } from './github-api.js';
+import {
+    getRepoContents,
+    putRepoFile,
+    deleteRepoFile,
+    translateGitHubError,
+    isGitHubErrorStatus,
+} from './github-api.js';
 import { sanitizeFolderName } from './utils.js';
-import { CONFIG, ERROR_MESSAGES } from '../core/index.js';
+import { API_ERROR_CODES, CONFIG, ERROR_MESSAGES } from '../core/index.js';
 
 const FOLDER_SYNC_DELAY_MS = 400;
 const FOLDER_SYNC_MAX_ATTEMPTS = 6;
@@ -44,7 +50,7 @@ export async function createSubFolder(folderName) {
             path: `${CONFIG.fileBasePath}/${cleanFolderName}`,
         };
     } catch (error) {
-        throw new Error(error.message || `建立分類失敗：${error.message}`);
+        throw translateGitHubError(error, `建立分類「${cleanFolderName}」`);
     }
 }
 
@@ -116,11 +122,11 @@ export async function listSubFolders() {
 
         return folders;
     } catch (error) {
-        if (error.status === 404) {
+        if (isGitHubErrorStatus(error, API_ERROR_CODES.NOT_FOUND)) {
             // files 路徑不存在，返回空陣列
             return [];
         }
-        throw new Error(`取得分類列表失敗：${error.message}`);
+        throw translateGitHubError(error, '取得分類列表');
     }
 }
 
@@ -183,9 +189,7 @@ export async function deleteSubFolder(folderName) {
         await deleteFolderPathRecursively(folderPath, normalizedFolderName);
         return true;
     } catch (error) {
-        throw new Error(
-            `刪除分類「${normalizedFolderName}」失敗：${error.message || '發生未知錯誤'}`
-        );
+        throw translateGitHubError(error, `刪除分類「${normalizedFolderName}」`);
     }
 }
 
