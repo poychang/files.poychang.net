@@ -52,6 +52,28 @@ function wait(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function deleteFolderPathRecursively(folderPath, rootFolderName) {
+    const contents = await getRepoContents(folderPath);
+
+    for (const item of contents) {
+        if (item.type === 'dir') {
+            await deleteFolderPathRecursively(item.path, rootFolderName);
+            continue;
+        }
+
+        if (item.type === 'file') {
+            await deleteRepoFile(
+                item.path,
+                item.sha,
+                `Delete ${item.path} from folder ${rootFolderName}`
+            );
+            continue;
+        }
+
+        throw new Error(`刪除分類失敗：無法處理 ${item.path} 的項目類型 "${item.type}"。`);
+    }
+}
+
 async function refreshUntil(predicate, options = {}) {
     const {
         attempts = FOLDER_SYNC_MAX_ATTEMPTS,
@@ -154,24 +176,16 @@ export async function deleteSubFolder(folderName) {
         throw new Error(ERROR_MESSAGES.FOLDER_NAME_REQUIRED);
     }
 
-    const folderPath = `${CONFIG.fileBasePath}/${folderName}`;
+    const normalizedFolderName = folderName.trim();
+    const folderPath = `${CONFIG.fileBasePath}/${normalizedFolderName}`;
 
     try {
-        // 先取得該資料夾下的所有檔案
-        const contents = await getRepoContents(folderPath);
-
-        // 遞迴刪除所有檔案
-        for (const item of contents) {
-            await deleteRepoFile(
-                item.path,
-                item.sha,
-                `Delete ${item.name} from folder ${folderName}`
-            );
-        }
-
+        await deleteFolderPathRecursively(folderPath, normalizedFolderName);
         return true;
     } catch (error) {
-        throw new Error(error.message || `刪除分類失敗：${error.message}`);
+        throw new Error(
+            `刪除分類「${normalizedFolderName}」失敗：${error.message || '發生未知錯誤'}`
+        );
     }
 }
 
@@ -205,3 +219,4 @@ export async function getFolderFileCount(folderName) {
         return 0;
     }
 }
+
