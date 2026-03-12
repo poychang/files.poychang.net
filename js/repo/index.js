@@ -43,6 +43,7 @@ import {
     createSubFolder,
     listSubFolders,
     deleteSubFolder,
+    waitForFolderState,
     folderExists,
     getFolderFileCount
 } from './folder-operations.js';
@@ -135,6 +136,7 @@ export {
     createSubFolder,
     listSubFolders,
     deleteSubFolder,
+    waitForFolderState,
     folderExists,
     getFolderFileCount
 };

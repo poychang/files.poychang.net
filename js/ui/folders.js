@@ -7,6 +7,7 @@ import {
     listSubFolders,
     createSubFolder,
     deleteSubFolder,
+    waitForFolderState,
     setCurrentSubFolder,
 } from '../repo/index.js';
 import { DOM_IDS, emitFolderSelected } from '../core/index.js';
@@ -156,6 +157,21 @@ async function selectFolder(folderName) {
     emitFolderSelected(folderName);
 }
 
+async function syncFoldersAfterMutation(folderName, expectedState) {
+    const { folders, synced } = await waitForFolderState({
+        folderName,
+        expectedState,
+    });
+
+    displayFoldersList(folders);
+
+    if (!synced) {
+        showError(`分類清單同步中，請稍後再重新整理確認「${folderName}」的最新狀態。`);
+    }
+
+    return synced;
+}
+
 /**
  * 處理建立資料夾
  */
@@ -178,14 +194,14 @@ async function handleCreateFolder() {
         showButtonLoading(createFolderBtn, '建立中...');
 
         await createSubFolder(folderName);
-        showSuccess(`✓ 已建立分類：${folderName}`);
 
         // 清空輸入框
         newFolderInput.value = '';
 
-        // 稍微延遲後重新載入資料夾列表，讓 GitHub API 有時間更新
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        await refreshFoldersList();
+        const synced = await syncFoldersAfterMutation(folderName, 'exists');
+        if (synced) {
+            showSuccess(`✓ 已建立分類：${folderName}`);
+        }
     } catch (error) {
         showError(error.message);
     } finally {
@@ -211,11 +227,11 @@ function handleDeleteFolderClick(folderName) {
 async function handleDeleteFolder(folderName) {
     try {
         await deleteSubFolder(folderName);
-        showSuccess(`✓ 已刪除分類：${folderName}`);
 
-        // 稍微延遲後重新載入資料夾列表，讓 GitHub API 有時間更新
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        await refreshFoldersList();
+        const synced = await syncFoldersAfterMutation(folderName, 'missing');
+        if (synced) {
+            showSuccess(`✓ 已刪除分類：${folderName}`);
+        }
     } catch (error) {
         showError(error.message);
         throw error; // 讓 modal 知道發生錯誤

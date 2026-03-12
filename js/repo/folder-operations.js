@@ -7,6 +7,9 @@ import { getRepoContents, putRepoFile, deleteRepoFile } from './github-api.js';
 import { sanitizeFolderName } from './utils.js';
 import { CONFIG, ERROR_MESSAGES } from '../core/index.js';
 
+const FOLDER_SYNC_DELAY_MS = 400;
+const FOLDER_SYNC_MAX_ATTEMPTS = 6;
+
 /**
  * 建立新的子資料夾（通過建立 .gitkeep 檔案）
  * @param {string} folderName - 資料夾名稱
@@ -45,6 +48,32 @@ export async function createSubFolder(folderName) {
     }
 }
 
+function wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function refreshUntil(predicate, options = {}) {
+    const {
+        attempts = FOLDER_SYNC_MAX_ATTEMPTS,
+        delayMs = FOLDER_SYNC_DELAY_MS,
+    } = options;
+
+    let folders = [];
+
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+        folders = await listSubFolders();
+        if (predicate(folders)) {
+            return folders;
+        }
+
+        if (attempt < attempts) {
+            await wait(delayMs);
+        }
+    }
+
+    return folders;
+}
+
 /**
  * 取得 files 下的所有分類
  * @returns {Promise<Array>} 資料夾列表
@@ -71,6 +100,48 @@ export async function listSubFolders() {
         }
         throw new Error(`取得分類列表失敗：${error.message}`);
     }
+}
+
+/**
+ * 等待資料夾列表同步到預期狀態
+ * @param {Object} params - 同步參數
+ * @param {string} params.folderName - 資料夾名稱
+ * @param {'exists'|'missing'} params.expectedState - 預期狀態
+ * @param {number} [params.attempts] - 最大重試次數
+ * @param {number} [params.delayMs] - 每次重試間隔（毫秒）
+ * @returns {Promise<{folders: Array, synced: boolean}>} 同步結果
+ */
+export async function waitForFolderState({
+    folderName,
+    expectedState,
+    attempts,
+    delayMs,
+}) {
+    if (!folderName || folderName.trim() === '') {
+        throw new Error(ERROR_MESSAGES.FOLDER_NAME_REQUIRED);
+    }
+
+    if (!['exists', 'missing'].includes(expectedState)) {
+        throw new Error('無效的資料夾同步狀態');
+    }
+
+    const normalizedFolderName = folderName.trim().toLowerCase();
+    const targetExists = expectedState === 'exists';
+    const folders = await refreshUntil((currentFolders) => {
+        const exists = currentFolders.some(
+            (folder) => folder.name.toLowerCase() === normalizedFolderName
+        );
+        return exists === targetExists;
+    }, { attempts, delayMs });
+
+    const synced = folders.some(
+        (folder) => folder.name.toLowerCase() === normalizedFolderName
+    ) === targetExists;
+
+    return {
+        folders,
+        synced,
+    };
 }
 
 /**
