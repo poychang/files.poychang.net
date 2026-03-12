@@ -109,7 +109,7 @@ function createFileItem(file) {
     const isImage = file.type === 'image';
 
     return `
-        <div class="list-group-item file-item">
+        <div class="list-group-item file-item" data-filename="${file.name}">
             <div class="d-flex align-items-center gap-3">
                 <div class="flex-shrink-0">
                     ${
@@ -179,15 +179,56 @@ async function confirmDeleteFile(filename, sha) {
     showDeleteFileModal(filename, async () => {
         try {
             await deleteFile(filename, sha);
+            removeFileListItem(filename);
             showSuccess(`✓ 已刪除檔案：${filename}`);
 
-            // 重新載入檔案列表
-            await refreshFileList();
+            void syncFileListAfterDeletion(filename);
         } catch (error) {
             showError(error.message);
             throw error;
         }
     });
+}
+
+async function syncFileListAfterDeletion(filename) {
+    try {
+        const files = await listFiles();
+        displayFileList(files);
+    } catch (error) {
+        showError(`檔案已刪除，但重新整理列表失敗：${error.message}`);
+    }
+}
+
+function removeFileListItem(filename) {
+    if (!fileListContainer) return;
+
+    const fileItem = Array.from(fileListContainer.querySelectorAll('.file-item')).find(
+        (item) => item.dataset.filename === filename,
+    );
+    if (!fileItem) return;
+
+    fileItem.remove();
+    updateFileCountBadge(-1);
+
+    if (fileListContainer.querySelector('.file-item')) {
+        return;
+    }
+
+    fileListContainer.innerHTML = `
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox display-1"></i>
+            <p class="mt-3">此分類目前沒有檔案</p>
+            <p class="small">上傳一些檔案來開始使用</p>
+        </div>
+    `;
+}
+
+function updateFileCountBadge(delta) {
+    if (!fileCountBadge) return;
+
+    const currentCount = Number.parseInt(fileCountBadge.textContent ?? '0', 10);
+    const safeCount = Number.isNaN(currentCount) ? 0 : currentCount;
+    fileCountBadge.textContent = Math.max(0, safeCount + delta);
 }
 
 /**
