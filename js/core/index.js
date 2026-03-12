@@ -35,7 +35,8 @@ export {
     TOKEN_STORAGE_MODES,
     THEMES,
     API_ERROR_CODES,
-    ERROR_MESSAGES
+    ERROR_MESSAGES,
+    PLATFORM_LIMITS
 } from './constants.js';
 
 // ========== 事件匯流排模組 ==========

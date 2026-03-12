@@ -80,6 +80,14 @@ import {
     getUploadStatus,
     setFileSelectHandler
 } from './upload.js';
+import {
+    initPlatformNotice,
+    getOversizedFiles,
+    buildOversizeErrorMessage,
+    buildUploadStartMessage,
+    buildUploadCompletionMessage,
+    buildCopyLinkMessage
+} from './platform-notice.js';
 
 /**
  * 初始化所有 UI 模組
@@ -106,6 +114,7 @@ export function initUI() {
     initFolders();
     initFiles();
     initUpload();
+    initPlatformNotice();
 }
 
 // ============================================
@@ -202,4 +211,14 @@ export {
     setFileSelectHandler
 };
 
+// 平台提示相關
+export {
+    getOversizedFiles,
+    buildOversizeErrorMessage,
+    buildUploadStartMessage,
+    buildUploadCompletionMessage,
+    buildCopyLinkMessage
+};
+
 // export { showFolderManagementView, showFileManagementView } from './views.js';
+

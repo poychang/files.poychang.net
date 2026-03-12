@@ -167,9 +167,12 @@ files.poychang.net/
 
 ## 已知限制與取捨
 
-- 這是直接操作 GitHub repository 的前端工具，不是一般雲端儲存服務
+- 這是 GitHub repository / GitHub Pages 的管理介面，不是一般雲端儲存服務，也不是即時同步的物件儲存服務
 - Token 預設只保存在目前瀏覽器工作階段；只有勾選「記住我」才會持久保存到 `localStorage`
-- 單一檔案仍受 GitHub 100 MB 限制
+- 單一檔案仍受 GitHub Contents API 的 `100 MB` 限制
+- 這個工具較適合少量靜態資產與分享檔案；長期累積大型二進位檔會讓 repository 歷史與同步成本快速增加
+- GitHub Contents API 有速率限制；短時間大量上傳、刪除或重新整理時，請求可能被暫時限制
+- GitHub Pages 與 CDN 快取更新通常需要數十秒，偶爾可能更久；剛上傳或覆蓋後不一定會立即對外可見
 - 建立或刪除分類後，介面會延遲約 1 秒再刷新，以等待 GitHub API 狀態一致
 - 檔案列表會略過 `.gitkeep`
 
@@ -189,3 +192,4 @@ files.poychang.net/
 ## 授權
 
 MIT License
+

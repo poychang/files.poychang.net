@@ -126,6 +126,9 @@ export const DOM_IDS = {
     BACK_TO_FOLDERS_BTN: 'back-to-folders-btn',
     CURRENT_FOLDER_NAME: 'current-folder-name',
     CURRENT_FOLDER_NAME_HEADER: 'current-folder-name-header',
+    PLATFORM_BOUNDARY_NOTICE: 'platform-boundary-notice',
+    UPLOAD_LIMIT_NOTICE: 'upload-limit-notice',
+    FILE_LINK_NOTICE: 'file-link-notice',
     
     // Toast
     TOAST_CONTAINER: 'toast-container',
@@ -141,6 +144,7 @@ export const DOM_IDS = {
     UPLOAD_FILE_COUNT: 'upload-file-count',
     UPLOAD_TARGET_PATH: 'upload-target-path',
     CONFIRM_UPLOAD_BTN: 'confirm-upload-btn',
+    UPLOAD_CONFIRM_NOTICE: 'upload-confirm-notice',
     
     // Modal - 刪除分類
     DELETE_FOLDER_MODAL: 'deleteFolderModal',
@@ -204,3 +208,20 @@ export const ERROR_MESSAGES = {
     DELETE_FAILED: '刪除失敗',
     NETWORK_ERROR: '網路錯誤，請檢查連線',
 };
+
+/**
+ * GitHub 平台限制與服務邊界提示
+ */
+export const PLATFORM_LIMITS = {
+    MAX_FILE_SIZE_BYTES: 100 * 1024 * 1024,
+    MAX_FILE_SIZE_LABEL: '100 MB',
+    REPOSITORY_GUIDANCE:
+        '這個工具適合管理少量靜態資產與分享檔案，不適合作為長期累積大型二進位檔的通用雲端硬碟。',
+    API_RATE_LIMIT_GUIDANCE:
+        'GitHub Contents API 有速率限制；短時間大量上傳、刪除或重整時，請求可能被暫時限制。',
+    PAGES_CACHE_GUIDANCE:
+        'GitHub Pages 與 CDN 快取更新通常需要數十秒，偶爾可能更久；剛上傳或覆蓋後不一定會立即對外可見。',
+    SERVICE_BOUNDARY_GUIDANCE:
+        '這是 GitHub repository / GitHub Pages 的管理介面，不是即時同步、高可用的物件儲存服務。',
+};
+

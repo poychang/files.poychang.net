@@ -12,6 +12,7 @@ import {
 import { DOM_IDS, CUSTOM_EVENTS } from '../core/index.js';
 import { showSuccess, showError } from './toast.js';
 import { showLoading, showButtonLoading, hideButtonLoading } from './loading.js';
+import { buildCopyLinkMessage } from './platform-notice.js';
 
 // DOM 元素
 let fileListContainer, fileCountBadge, refreshFilesBtn;
@@ -147,7 +148,7 @@ function createFileItem(file) {
 async function copyFileLink(url, filename) {
     try {
         await navigator.clipboard.writeText(url);
-        showSuccess(`✓ 已複製連結：${filename}`);
+        showSuccess(buildCopyLinkMessage(filename));
     } catch (error) {
         // 降級方案：使用 textarea
         const textarea = document.createElement('textarea');
@@ -159,7 +160,7 @@ async function copyFileLink(url, filename) {
 
         try {
             document.execCommand('copy');
-            showSuccess(`✓ 已複製連結：${filename}`);
+            showSuccess(buildCopyLinkMessage(filename));
         } catch (err) {
             showError('複製失敗，請手動複製');
         }
@@ -209,3 +210,4 @@ export function getFileListContainer() {
 export function getFileCountBadge() {
     return fileCountBadge;
 }
+

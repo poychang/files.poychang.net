@@ -19,7 +19,9 @@ import {
     refreshFileList,
     refreshFoldersList,
     getFileInput,
-    showUploadConfirmModal
+    showUploadConfirmModal,
+    buildUploadStartMessage,
+    buildUploadCompletionMessage
 } from './ui/index.js';
 
 const logger = createLogger('App');
@@ -92,7 +94,7 @@ async function handleFileUpload(files) {
  */
 async function performUpload(files) {
     try {
-        showInfo(`開始上傳 ${files.length} 個檔案...`);
+        showInfo(buildUploadStartMessage(files.length));
 
         const results = await uploadFiles(files, (progress) => {
             showUploadProgress(progress);
@@ -106,9 +108,9 @@ async function performUpload(files) {
 
         // 顯示結果
         if (failCount === 0) {
-            showSuccess(`✓ 成功上傳 ${successCount} 個檔案！`);
+            showSuccess(buildUploadCompletionMessage(successCount, failCount));
         } else {
-            showError(`上傳完成：成功 ${successCount} 個，失敗 ${failCount} 個`);
+            showError(buildUploadCompletionMessage(successCount, failCount));
 
             // 顯示失敗的檔案
             const failedFiles = results.filter(r => !r.success);
