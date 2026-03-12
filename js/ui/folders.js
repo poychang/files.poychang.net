@@ -20,7 +20,7 @@ import {
     showErrorState,
 } from './loading.js';
 import { showDeleteFolderModal } from './modal.js';
-import { showFileManagementView } from './views.js';
+import { showFolderFiles } from './views.js';
 import { reapplyFilter } from './folder-filter.js';
 
 // DOM 元素
@@ -155,7 +155,7 @@ async function selectFolder(folderName) {
     setCurrentSubFolder(folderName);
 
     // 切換到檔案管理視圖
-    showFileManagementView(folderName);
+    showFolderFiles(folderName);
 
     // 透過統一事件出口通知其他模組
     emitFolderSelected(folderName);

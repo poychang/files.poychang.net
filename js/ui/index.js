@@ -6,8 +6,8 @@
 import { initTheme } from './theme.js';
 import { initToast, showSuccess, showError, showInfo } from './toast.js';
 import { initModal, showUploadConfirmModal } from './modal.js';
-import { initNavbar, displayUserInfo, clearUserInfo } from './navbar.js';
-import { initViews } from './views.js';
+import { initNavbar } from './navbar.js';
+import { initViews, showLoggedOutState, showAuthenticatedHome, showFolderFiles } from './views.js';
 import { initFolderFilter } from './folder-filter.js';
 import { initFolders, refreshFoldersList } from './folders.js';
 import { initFiles, refreshFileList } from './files.js';
@@ -40,8 +40,9 @@ export {
     showSuccess,
     showError,
     showInfo,
-    displayUserInfo,
-    clearUserInfo,
+    showLoggedOutState,
+    showAuthenticatedHome,
+    showFolderFiles,
     showUploadProgress,
     hideUploadProgress,
     refreshFileList,

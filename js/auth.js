@@ -19,7 +19,6 @@ const logger = createLogger('Auth');
 let octokit = null;
 
 // DOM 元素
-let loginSection, authenticatedSection;
 let loginBtn, tokenInput, tokenLoginBtn;
 let tokenRememberCheckbox, tokenStorageHelp;
 let navbarLogoutBtn;
@@ -32,8 +31,6 @@ let onAuthFail = null;
  * 初始化認證模組
  */
 export function initAuth(config) {
-    loginSection = document.getElementById(DOM_IDS.LOGIN_SECTION);
-    authenticatedSection = document.getElementById(DOM_IDS.AUTHENTICATED_SECTION);
     loginBtn = document.getElementById(DOM_IDS.LOGIN_BTN);
     tokenInput = document.getElementById(DOM_IDS.TOKEN_INPUT);
     tokenLoginBtn = document.getElementById(DOM_IDS.TOKEN_LOGIN_BTN);
@@ -76,7 +73,7 @@ export function initAuth(config) {
 async function checkExistingAuth() {
     const { token, mode } = loadToken();
     if (!token) {
-        showLoginState();
+        resetLoginForm();
         return;
     }
 
@@ -85,7 +82,7 @@ async function checkExistingAuth() {
         const user = await getUserInfo();
 
         logger.info('Token validated successfully', { mode });
-        showAuthenticatedState();
+        resetLoginForm();
 
         if (onAuthSuccess) {
             onAuthSuccess(user, { auto: true, mode });
@@ -94,7 +91,7 @@ async function checkExistingAuth() {
         logger.warn('Token invalid, clearing authentication', getGitHubErrorDetails(error) || { message: error.message });
         clearToken();
         octokit = null;
-        showLoginState();
+        resetLoginForm();
     }
 }
 
@@ -133,7 +130,7 @@ async function loginWithToken() {
         logger.info('Authentication successful', { user: user.login, mode });
 
         saveToken(token, mode);
-        showAuthenticatedState();
+        resetLoginForm();
 
         if (onAuthSuccess) {
             onAuthSuccess(user, { auto: false, mode });
@@ -159,7 +156,7 @@ function logout() {
     clearToken();
     octokit = null;
     tokenInput.value = '';
-    showLoginState();
+    resetLoginForm();
 
     emitAuthLogout();
 }
@@ -191,31 +188,13 @@ export function isAuthenticated() {
 }
 
 /**
- * 顯示登入狀態
+ * 重置登入表單狀態
  */
-function showLoginState() {
-    loginSection.classList.remove('d-none');
-    authenticatedSection.classList.add('d-none');
+function resetLoginForm() {
     loginBtn.classList.remove('d-none');
     document.getElementById(DOM_IDS.TOKEN_INPUT_SECTION).classList.add('d-none');
     tokenLoginBtn.disabled = false;
     restoreStoragePreferenceUi();
-
-    if (navbarLogoutBtn) {
-        navbarLogoutBtn.classList.add('d-none');
-    }
-}
-
-/**
- * 顯示已認證狀態
- */
-function showAuthenticatedState() {
-    loginSection.classList.add('d-none');
-    authenticatedSection.classList.remove('d-none');
-
-    if (navbarLogoutBtn) {
-        navbarLogoutBtn.classList.remove('d-none');
-    }
 }
 
 function loadToken() {

@@ -3,7 +3,7 @@
  * 整合所有模組並初始化應用程式
  */
 
-import { initCore, CONFIG, CUSTOM_EVENTS, DOM_IDS, TOKEN_STORAGE_MODES, createLogger } from './core/index.js';
+import { initCore, CONFIG, CUSTOM_EVENTS, TOKEN_STORAGE_MODES, createLogger } from './core/index.js';
 import { initAuth } from './auth.js';
 import { initRepo, prepareUploadBatch, uploadFiles, getCurrentSubFolder, validateUploadSelection } from './repo/index.js';
 import {
@@ -11,8 +11,8 @@ import {
     showSuccess,
     showError,
     showInfo,
-    displayUserInfo,
-    clearUserInfo,
+    showLoggedOutState,
+    showAuthenticatedHome,
     showUploadProgress,
     hideUploadProgress,
     refreshFileList,
@@ -146,7 +146,7 @@ async function performUpload(files, existingFilesIndex) {
  */
 async function handleAuthSuccess(user, options = {}) {
     logger.info('Auth success handler triggered', { auto: options.auto });
-    displayUserInfo(user);
+    showAuthenticatedHome(user);
 
     // 僅在手動登入時顯示成功提示；自動登入不重複提示
     if (!options.auto) {
@@ -155,15 +155,6 @@ async function handleAuthSuccess(user, options = {}) {
             : 'Token 僅保存於本次瀏覽器工作階段。';
         showSuccess(`登入成功，${persistenceMessage}`);
     }
-
-    // 顯示已登入區域
-    const loginSection = document.getElementById(DOM_IDS.LOGIN_SECTION);
-    const authenticatedSection = document.getElementById(DOM_IDS.AUTHENTICATED_SECTION);
-    const pageHeader = document.getElementById(DOM_IDS.PAGE_HEADER);
-
-    if (loginSection) loginSection.classList.add('d-none');
-    if (authenticatedSection) authenticatedSection.classList.remove('d-none');
-    if (pageHeader) pageHeader.classList.add('d-none');
 
     // 載入資料夾列表
     await refreshFoldersList();
@@ -194,28 +185,7 @@ function handleFileOperationFail(errorMessage) {
  * 處理登出
  */
 function handleLogout() {
-    clearUserInfo();
-
-    // 隱藏已登入區域
-    const loginSection = document.getElementById(DOM_IDS.LOGIN_SECTION);
-    const authenticatedSection = document.getElementById(DOM_IDS.AUTHENTICATED_SECTION);
-    const folderManagementView = document.getElementById(DOM_IDS.FOLDER_MANAGEMENT_VIEW);
-    const fileManagementView = document.getElementById(DOM_IDS.FILE_MANAGEMENT_VIEW);
-    const pageHeader = document.getElementById(DOM_IDS.PAGE_HEADER);
-
-    if (loginSection) loginSection.classList.remove('d-none');
-    if (authenticatedSection) authenticatedSection.classList.add('d-none');
-    // 重置到分類管理視圖
-    if (folderManagementView) folderManagementView.classList.remove('d-none');
-    if (fileManagementView) fileManagementView.classList.add('d-none');
-    if (pageHeader) pageHeader.classList.remove('d-none');
-
-    // 清空目前分類顯示
-    const currentFolderNameEl = document.getElementById(DOM_IDS.CURRENT_FOLDER_NAME);
-    if (currentFolderNameEl) currentFolderNameEl.textContent = '';
-    const currentFolderNameHeaderEl = document.getElementById(DOM_IDS.CURRENT_FOLDER_NAME_HEADER);
-    if (currentFolderNameHeaderEl) currentFolderNameHeaderEl.textContent = '';
-
+    showLoggedOutState();
     showSuccess('已登出');
 }
 

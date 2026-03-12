@@ -70,6 +70,16 @@ export function clearUserInfo() {
 }
 
 /**
+ * 設定登出按鈕顯示狀態
+ * @param {boolean} visible - 是否顯示
+ */
+export function setLogoutButtonVisible(visible) {
+    if (!navbarLogoutBtn) return;
+
+    navbarLogoutBtn.classList.toggle('d-none', !visible);
+}
+
+/**
  * 設定登出按鈕點擊事件
  * @param {Function} callback - 登出回調函數
  */
