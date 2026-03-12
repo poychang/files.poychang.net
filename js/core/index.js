@@ -1,12 +1,12 @@
 /**
  * Core Layer - 核心層統一入口
- * 
+ *
  * 核心層負責：
  * - 應用程式配置管理
  * - 常量定義
  * - 事件匯流排
  * - 日誌記錄
- * 
+ *
  * @module core
  */
 
@@ -32,6 +32,7 @@ export {
     CUSTOM_EVENTS,
     DOM_IDS,
     STORAGE_KEYS,
+    TOKEN_STORAGE_MODES,
     THEMES,
     API_ERROR_CODES,
     ERROR_MESSAGES

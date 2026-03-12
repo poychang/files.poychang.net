@@ -102,6 +102,20 @@
                                 <i class="bi bi-box-arrow-in-right me-2"></i>登入
                             </button>
                         </div>
+                        <div class="form-check mt-3">
+                            <input class="form-check-input" type="checkbox" value="true" id="token-remember-checkbox">
+                            <label class="form-check-label" for="token-remember-checkbox">
+                                記住我，在這台裝置持續保存 Token
+                            </label>
+                        </div>
+                        <div id="token-storage-help" class="form-text">
+                            預設僅在本次瀏覽器工作階段保存 Token；關閉分頁或瀏覽器後需重新登入。
+                        </div>
+                        <div class="alert alert-warning mt-3 mb-0 small">
+                            <h6 class="alert-heading mb-2"><i class="bi bi-shield-exclamation me-2"></i>安全提醒</h6>
+                            <p class="mb-2">這是純前端 PAT 登入流程，不是 GitHub OAuth。只要 Token 留在瀏覽器內，就可能被裝置共用者或 XSS 風險利用。</p>
+                            <p class="mb-0">若不是私人裝置，請保持預設設定，不要勾選「記住我」。</p>
+                        </div>
                     </div>
                 </div>
 

@@ -45,9 +45,10 @@ const CONFIG = {
 ### 4. 使用流程
 
 1. 開啟網站並以 Personal Access Token 登入
-2. 建立或選取分類
-3. 上傳檔案
-4. 在檔案列表中複製連結或刪除檔案
+2. 預設只在本次瀏覽器工作階段使用 Token；只有在私人裝置上才建議勾選「記住我」
+3. 建立或選取分類
+4. 上傳檔案
+5. 在檔案列表中複製連結或刪除檔案
 
 ## 專案結構
 
@@ -119,6 +120,14 @@ files.poychang.net/
 - 管理主題、Toast、Modal、分類列表、檔案列表、上傳互動與視圖切換
 - 透過 `js/ui/index.js` 統一初始化
 
+## 登入與憑證保存
+
+- 這是純前端 PAT 模式，不是 GitHub OAuth 或後端代理流程
+- 預設使用 `sessionStorage`，關閉分頁或瀏覽器後不再自動沿用 Token
+- 只有在使用者勾選「記住我」時，才會把 Token 寫入 `localStorage`
+- 登出或 Token 驗證失敗時，系統會清除 `sessionStorage` 與 `localStorage` 內殘留的憑證資料
+- 若裝置可能被他人共用，請不要啟用「記住我」
+
 ## 技術現況
 
 - 前端：原生 JavaScript ES Modules
@@ -131,7 +140,7 @@ files.poychang.net/
 ## 已知限制與取捨
 
 - 這是直接操作 GitHub repository 的前端工具，不是一般雲端儲存服務
-- Token 目前保存在瀏覽器 `localStorage`
+- Token 預設只保存在目前瀏覽器工作階段；只有勾選「記住我」才會持久保存到 `localStorage`
 - 單一檔案仍受 GitHub 100 MB 限制
 - 建立或刪除分類後，介面會延遲約 1 秒再刷新，以等待 GitHub API 狀態一致
 - 檔案列表會略過 `.gitkeep`

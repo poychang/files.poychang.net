@@ -3,16 +3,16 @@
  * 整合所有模組並初始化應用程式
  */
 
-import { initCore, CONFIG, CUSTOM_EVENTS, DOM_IDS, createLogger } from './core/index.js';
+import { initCore, CONFIG, CUSTOM_EVENTS, DOM_IDS, TOKEN_STORAGE_MODES, createLogger } from './core/index.js';
 import { initAuth } from './auth.js';
 import { initRepo, uploadFiles, getCurrentSubFolder } from './repo/index.js';
-import { 
-    initUI, 
-    showMessage, 
-    showSuccess, 
-    showError, 
+import {
+    initUI,
+    showMessage,
+    showSuccess,
+    showError,
     showInfo,
-    displayUserInfo, 
+    displayUserInfo,
     clearUserInfo,
     showUploadProgress,
     hideUploadProgress,
@@ -29,10 +29,10 @@ const logger = createLogger('App');
  */
 function initApp() {
     logger.info('Initializing application...');
-    
+
     // 初始化核心層
     initCore({ logLevel: 'info' });
-    
+
     // 初始化 UI 模組
     initUI();
 
@@ -53,7 +53,7 @@ function initApp() {
 
     // 監聽登出事件
     window.addEventListener(CUSTOM_EVENTS.AUTH_LOGOUT, handleLogout);
-    
+
     logger.info('Application initialized successfully');
 }
 
@@ -80,7 +80,7 @@ async function handleFileUpload(files) {
 
     const currentFolder = getCurrentSubFolder();
     const targetPath = `${CONFIG.fileBasePath}/${currentFolder}/`;
-    
+
     // 使用 Modal 確認上傳
     showUploadConfirmModal(files.length, targetPath, async () => {
         await performUpload(files);
@@ -93,7 +93,7 @@ async function handleFileUpload(files) {
 async function performUpload(files) {
     try {
         showInfo(`開始上傳 ${files.length} 個檔案...`);
-        
+
         const results = await uploadFiles(files, (progress) => {
             showUploadProgress(progress);
         });
@@ -109,7 +109,7 @@ async function performUpload(files) {
             showSuccess(`✓ 成功上傳 ${successCount} 個檔案！`);
         } else {
             showError(`上傳完成：成功 ${successCount} 個，失敗 ${failCount} 個`);
-            
+
             // 顯示失敗的檔案
             const failedFiles = results.filter(r => !r.success);
             logger.error('上傳失敗的檔案：', failedFiles);
@@ -125,7 +125,7 @@ async function performUpload(files) {
     } catch (error) {
         hideUploadProgress();
         showError(`上傳失敗：${error.message}`);
-        
+
         // 清除檔案選擇
         const fileInput = getFileInput();
         if (fileInput) fileInput.value = '';
@@ -138,20 +138,24 @@ async function performUpload(files) {
 async function handleAuthSuccess(user, options = {}) {
     logger.info('Auth success handler triggered', { auto: options.auto });
     displayUserInfo(user);
-    // 僅在手動登入時顯示成功提示;自動登入(localStorage)不顯示
+
+    // 僅在手動登入時顯示成功提示；自動登入不重複提示
     if (!options.auto) {
-        showSuccess('✅ 登入成功!');
+        const persistenceMessage = options.mode === TOKEN_STORAGE_MODES.LOCAL
+            ? 'Token 已保存於此瀏覽器。'
+            : 'Token 僅保存於本次瀏覽器工作階段。';
+        showSuccess(`登入成功，${persistenceMessage}`);
     }
-    
+
     // 顯示已登入區域
     const loginSection = document.getElementById(DOM_IDS.LOGIN_SECTION);
     const authenticatedSection = document.getElementById(DOM_IDS.AUTHENTICATED_SECTION);
     const pageHeader = document.getElementById(DOM_IDS.PAGE_HEADER);
-    
+
     if (loginSection) loginSection.classList.add('d-none');
     if (authenticatedSection) authenticatedSection.classList.remove('d-none');
     if (pageHeader) pageHeader.classList.add('d-none');
-    
+
     // 載入資料夾列表
     await refreshFoldersList();
 }
@@ -182,14 +186,14 @@ function handleFileOperationFail(errorMessage) {
  */
 function handleLogout() {
     clearUserInfo();
-    
+
     // 隱藏已登入區域
     const loginSection = document.getElementById(DOM_IDS.LOGIN_SECTION);
     const authenticatedSection = document.getElementById(DOM_IDS.AUTHENTICATED_SECTION);
     const folderManagementView = document.getElementById(DOM_IDS.FOLDER_MANAGEMENT_VIEW);
     const fileManagementView = document.getElementById(DOM_IDS.FILE_MANAGEMENT_VIEW);
     const pageHeader = document.getElementById(DOM_IDS.PAGE_HEADER);
-    
+
     if (loginSection) loginSection.classList.remove('d-none');
     if (authenticatedSection) authenticatedSection.classList.add('d-none');
     // 重置到分類管理視圖
@@ -202,10 +206,9 @@ function handleLogout() {
     if (currentFolderNameEl) currentFolderNameEl.textContent = '';
     const currentFolderNameHeaderEl = document.getElementById(DOM_IDS.CURRENT_FOLDER_NAME_HEADER);
     if (currentFolderNameHeaderEl) currentFolderNameHeaderEl.textContent = '';
-    
+
     showSuccess('已登出');
 }
 
 // 當 DOM 載入完成時初始化應用程式
 window.addEventListener('DOMContentLoaded', initApp);
-

@@ -1,17 +1,17 @@
-import { Octokit } from "https://esm.sh/@octokit/core";
-import { 
-    DOM_IDS, 
-    STORAGE_KEYS, 
-    ERROR_MESSAGES,
-    CUSTOM_EVENTS,
-    emitAuthLogout,
-    createLogger 
-} from './core/index.js';
-
 /**
  * 認證管理模組
  * 使用 Personal Access Token 進行認證（純前端方案）
  */
+
+import { Octokit } from "https://esm.sh/@octokit/core";
+import {
+    DOM_IDS,
+    STORAGE_KEYS,
+    TOKEN_STORAGE_MODES,
+    ERROR_MESSAGES,
+    emitAuthLogout,
+    createLogger
+} from './core/index.js';
 
 const logger = createLogger('Auth');
 
@@ -20,6 +20,7 @@ let octokit = null;
 // DOM 元素
 let loginSection, authenticatedSection;
 let loginBtn, tokenInput, tokenLoginBtn;
+let tokenRememberCheckbox, tokenStorageHelp;
 let navbarLogoutBtn;
 
 // 回調函數
@@ -35,31 +36,36 @@ export function initAuth(config) {
     loginBtn = document.getElementById(DOM_IDS.LOGIN_BTN);
     tokenInput = document.getElementById(DOM_IDS.TOKEN_INPUT);
     tokenLoginBtn = document.getElementById(DOM_IDS.TOKEN_LOGIN_BTN);
+    tokenRememberCheckbox = document.getElementById(DOM_IDS.TOKEN_REMEMBER_CHECKBOX);
+    tokenStorageHelp = document.getElementById(DOM_IDS.TOKEN_STORAGE_HELP);
     navbarLogoutBtn = document.getElementById(DOM_IDS.NAVBAR_LOGOUT_BTN);
 
-    // 設定回調
     if (config.onAuthSuccess) onAuthSuccess = config.onAuthSuccess;
     if (config.onAuthFail) onAuthFail = config.onAuthFail;
 
-    // 綁定事件
     loginBtn.addEventListener('click', showTokenInput);
     tokenLoginBtn.addEventListener('click', loginWithToken);
-    
-    // 綁定導航列登出按鈕
+
     if (navbarLogoutBtn) {
         navbarLogoutBtn.addEventListener('click', logout);
     }
-    
-    // 支援 Enter 鍵登入
+
     tokenInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             loginWithToken();
         }
     });
 
-    // 檢查是否已登入
+    if (tokenRememberCheckbox) {
+        tokenRememberCheckbox.addEventListener('change', () => {
+            saveStorageModePreference(getSelectedStorageMode());
+            updateStoragePreferenceHint();
+        });
+    }
+
+    restoreStoragePreferenceUi();
     checkExistingAuth();
-    
+
     logger.info('Auth module initialized');
 }
 
@@ -67,30 +73,27 @@ export function initAuth(config) {
  * 檢查現有的認證狀態
  */
 async function checkExistingAuth() {
-    const token = localStorage.getItem(STORAGE_KEYS.GITHUB_TOKEN);
-    if (token) {
-        try {
-            octokit = new Octokit({ auth: token });
-            
-            // 驗證 token 是否有效
-            await octokit.request('GET /user');
-            
-            logger.info('Token validated successfully');
-            
-            // Token 有效，顯示已登入狀態
-            showAuthenticatedState();
-            
-            if (onAuthSuccess) {
-                const user = await getUserInfo();
-                onAuthSuccess(user, { auto: true });
-            }
-        } catch (error) {
-            // Token 無效，清除並顯示登入按鈕
-            logger.warn('Token invalid, clearing authentication');
-            localStorage.removeItem(STORAGE_KEYS.GITHUB_TOKEN);
-            octokit = null;
-            showLoginState();
+    const { token, mode } = loadToken();
+    if (!token) {
+        showLoginState();
+        return;
+    }
+
+    try {
+        octokit = new Octokit({ auth: token });
+        const user = await getUserInfo();
+
+        logger.info('Token validated successfully', { mode });
+        showAuthenticatedState();
+
+        if (onAuthSuccess) {
+            onAuthSuccess(user, { auto: true, mode });
         }
+    } catch (error) {
+        logger.warn('Token invalid, clearing authentication', { message: error.message });
+        clearToken();
+        octokit = null;
+        showLoginState();
     }
 }
 
@@ -101,6 +104,7 @@ function showTokenInput() {
     const tokenSection = document.getElementById(DOM_IDS.TOKEN_INPUT_SECTION);
     tokenSection.classList.remove('d-none');
     loginBtn.classList.add('d-none');
+    restoreStoragePreferenceUi();
     tokenInput.focus();
 }
 
@@ -109,7 +113,8 @@ function showTokenInput() {
  */
 async function loginWithToken() {
     const token = tokenInput.value.trim();
-    
+    const mode = getSelectedStorageMode();
+
     if (!token) {
         if (onAuthFail) {
             onAuthFail('請輸入 GitHub Personal Access Token');
@@ -119,30 +124,27 @@ async function loginWithToken() {
 
     try {
         tokenLoginBtn.disabled = true;
-        logger.info('Attempting to authenticate with token');
-        
-        // 初始化 Octokit
+        logger.info('Attempting to authenticate with token', { mode });
+
         octokit = new Octokit({ auth: token });
-        
-        // 驗證 token 是否有效
         const user = await getUserInfo();
-        
-        logger.info('Authentication successful', { user: user.login });
-        
-        // Token 有效，儲存並顯示已登入狀態
-        localStorage.setItem(STORAGE_KEYS.GITHUB_TOKEN, token);
+
+        logger.info('Authentication successful', { user: user.login, mode });
+
+        saveToken(token, mode);
         showAuthenticatedState();
-        
+
         if (onAuthSuccess) {
-            onAuthSuccess(user, { auto: false });
+            onAuthSuccess(user, { auto: false, mode });
         }
-        
     } catch (error) {
         logger.error('Authentication failed', error);
+        clearToken();
         octokit = null;
         if (onAuthFail) {
             onAuthFail(`${ERROR_MESSAGES.INVALID_TOKEN}。請確認 Token 是否正確。`);
         }
+    } finally {
         tokenLoginBtn.disabled = false;
     }
 }
@@ -152,12 +154,11 @@ async function loginWithToken() {
  */
 function logout() {
     logger.info('User logging out');
-    localStorage.removeItem(STORAGE_KEYS.GITHUB_TOKEN);
+    clearToken();
     octokit = null;
     tokenInput.value = '';
     showLoginState();
-    
-    // 觸發登出事件 (使用 Core 層事件系統)
+
     emitAuthLogout();
 }
 
@@ -196,8 +197,8 @@ function showLoginState() {
     loginBtn.classList.remove('d-none');
     document.getElementById(DOM_IDS.TOKEN_INPUT_SECTION).classList.add('d-none');
     tokenLoginBtn.disabled = false;
-    
-    // 隱藏導航列登出按鈕
+    restoreStoragePreferenceUi();
+
     if (navbarLogoutBtn) {
         navbarLogoutBtn.classList.add('d-none');
     }
@@ -209,9 +210,82 @@ function showLoginState() {
 function showAuthenticatedState() {
     loginSection.classList.add('d-none');
     authenticatedSection.classList.remove('d-none');
-    
-    // 顯示導航列登出按鈕
+
     if (navbarLogoutBtn) {
         navbarLogoutBtn.classList.remove('d-none');
     }
+}
+
+function loadToken() {
+    const sessionToken = sessionStorage.getItem(STORAGE_KEYS.GITHUB_TOKEN);
+    if (sessionToken) {
+        return { token: sessionToken, mode: TOKEN_STORAGE_MODES.SESSION };
+    }
+
+    const localToken = localStorage.getItem(STORAGE_KEYS.GITHUB_TOKEN);
+    if (localToken) {
+        if (!localStorage.getItem(STORAGE_KEYS.GITHUB_TOKEN_STORAGE_MODE)) {
+            localStorage.setItem(STORAGE_KEYS.GITHUB_TOKEN_STORAGE_MODE, TOKEN_STORAGE_MODES.LOCAL);
+        }
+        return { token: localToken, mode: TOKEN_STORAGE_MODES.LOCAL };
+    }
+
+    return {
+        token: null,
+        mode: loadPreferredStorageMode(),
+    };
+}
+
+function saveToken(token, mode) {
+    clearToken();
+    getStorage(mode).setItem(STORAGE_KEYS.GITHUB_TOKEN, token);
+    saveStorageModePreference(mode);
+}
+
+function clearToken() {
+    sessionStorage.removeItem(STORAGE_KEYS.GITHUB_TOKEN);
+    localStorage.removeItem(STORAGE_KEYS.GITHUB_TOKEN);
+    sessionStorage.removeItem(STORAGE_KEYS.GITHUB_TOKEN_STORAGE_MODE);
+    localStorage.removeItem(STORAGE_KEYS.GITHUB_TOKEN_STORAGE_MODE);
+}
+
+function getSelectedStorageMode() {
+    return tokenRememberCheckbox?.checked
+        ? TOKEN_STORAGE_MODES.LOCAL
+        : TOKEN_STORAGE_MODES.SESSION;
+}
+
+function restoreStoragePreferenceUi() {
+    if (!tokenRememberCheckbox) {
+        return;
+    }
+
+    tokenRememberCheckbox.checked = loadPreferredStorageMode() === TOKEN_STORAGE_MODES.LOCAL;
+    updateStoragePreferenceHint();
+}
+
+function updateStoragePreferenceHint() {
+    if (!tokenStorageHelp) {
+        return;
+    }
+
+    tokenStorageHelp.textContent = getSelectedStorageMode() === TOKEN_STORAGE_MODES.LOCAL
+        ? '已選擇記住我：Token 會保存於 localStorage，重新開啟瀏覽器後仍可能自動登入。'
+        : '預設僅在本次瀏覽器工作階段保存 Token；關閉分頁或瀏覽器後需重新登入。';
+}
+
+function loadPreferredStorageMode() {
+    return sessionStorage.getItem(STORAGE_KEYS.GITHUB_TOKEN_STORAGE_MODE)
+        || localStorage.getItem(STORAGE_KEYS.GITHUB_TOKEN_STORAGE_MODE)
+        || TOKEN_STORAGE_MODES.SESSION;
+}
+
+function saveStorageModePreference(mode) {
+    sessionStorage.removeItem(STORAGE_KEYS.GITHUB_TOKEN_STORAGE_MODE);
+    localStorage.removeItem(STORAGE_KEYS.GITHUB_TOKEN_STORAGE_MODE);
+    getStorage(mode).setItem(STORAGE_KEYS.GITHUB_TOKEN_STORAGE_MODE, mode);
+}
+
+function getStorage(mode) {
+    return mode === TOKEN_STORAGE_MODES.LOCAL ? localStorage : sessionStorage;
 }

@@ -89,6 +89,8 @@ export const DOM_IDS = {
     LOGIN_BTN: 'login-btn',
     TOKEN_INPUT: 'token-input',
     TOKEN_LOGIN_BTN: 'token-login-btn',
+    TOKEN_REMEMBER_CHECKBOX: 'token-remember-checkbox',
+    TOKEN_STORAGE_HELP: 'token-storage-help',
     
     // 使用者資訊（導航列）
     USER_INFO: 'navbar-user-info',
@@ -156,7 +158,16 @@ export const DOM_IDS = {
  */
 export const STORAGE_KEYS = {
     GITHUB_TOKEN: 'github_token',
+    GITHUB_TOKEN_STORAGE_MODE: 'github_token_storage_mode',
     THEME: 'github-file-hosting-theme',
+};
+
+/**
+ * Token 保存模式
+ */
+export const TOKEN_STORAGE_MODES = {
+    SESSION: 'session',
+    LOCAL: 'local',
 };
 
 /**
