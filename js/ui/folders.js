@@ -12,7 +12,13 @@ import {
 } from '../repo/index.js';
 import { DOM_IDS, emitFolderSelected } from '../core/index.js';
 import { showSuccess, showError } from './toast.js';
-import { showButtonLoading, hideButtonLoading } from './loading.js';
+import {
+    showButtonLoading,
+    hideButtonLoading,
+    showLoading,
+    showEmptyState,
+    showErrorState,
+} from './loading.js';
 import { showDeleteFolderModal } from './modal.js';
 import { showFileManagementView } from './views.js';
 import { reapplyFilter } from './folder-filter.js';
@@ -57,25 +63,25 @@ export async function refreshFoldersList() {
     try {
         if (!foldersList) return;
 
-        foldersList.innerHTML = `
-            <div class="list-group-item text-center text-muted py-4">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">載入中...</span>
-                </div>
-                <p class="mt-2">載入分類列表...</p>
-            </div>
-        `;
+        showLoading(foldersList, {
+            title: '載入分類列表...',
+            message: '正在同步 GitHub repository 內的分類。',
+        });
 
         const folders = await listSubFolders();
         displayFoldersList(folders);
     } catch (error) {
         showError(error.message);
-        foldersList.innerHTML = `
-            <div class="list-group-item text-center text-danger py-4">
-                <i class="bi bi-exclamation-triangle display-4"></i>
-                <p class="mt-2">${error.message}</p>
-            </div>
-        `;
+        showErrorState(foldersList, {
+            title: '載入分類失敗',
+            message: error.message,
+            action: {
+                label: '重新整理',
+                icon: 'bi bi-arrow-clockwise',
+                className: 'btn btn-outline-danger',
+                onClick: refreshFoldersList,
+            },
+        });
     }
 }
 
@@ -87,13 +93,11 @@ export function displayFoldersList(folders) {
     if (!foldersList) return;
 
     if (folders.length === 0) {
-        foldersList.innerHTML = `
-            <div class="list-group-item text-center text-muted py-4">
-                <i class="bi bi-folder-x display-4"></i>
-                <p class="mt-3">目前沒有任何分類</p>
-                <p class="small">建立一個新分類來開始使用</p>
-            </div>
-        `;
+        showEmptyState(foldersList, {
+            icon: 'bi bi-folder-x',
+            title: '目前沒有任何分類',
+            message: '建立一個新分類來開始使用。',
+        });
         return;
     }
 

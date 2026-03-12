@@ -11,7 +11,7 @@ import {
 } from '../repo/index.js';
 import { DOM_IDS, CUSTOM_EVENTS } from '../core/index.js';
 import { showSuccess, showError } from './toast.js';
-import { showLoading } from './loading.js';
+import { showLoading, showEmptyState, showErrorState } from './loading.js';
 import { showDeleteFileModal } from './modal.js';
 import { buildCopyLinkMessage } from './platform-notice.js';
 
@@ -42,18 +42,25 @@ export function initFiles() {
  */
 export async function refreshFileList() {
     try {
-        showLoading(fileListContainer, '載入檔案列表...');
+        showLoading(fileListContainer, {
+            title: '載入檔案列表...',
+            message: '正在讀取目前分類中的檔案。',
+        });
 
         const files = await listFiles();
         displayFileList(files);
     } catch (error) {
         showError(error.message);
-        fileListContainer.innerHTML = `
-            <div class="text-center text-danger py-4">
-                <i class="bi bi-exclamation-triangle display-4"></i>
-                <p class="mt-2">${error.message}</p>
-            </div>
-        `;
+        showErrorState(fileListContainer, {
+            title: '載入檔案失敗',
+            message: error.message,
+            action: {
+                label: '重新整理',
+                icon: 'bi bi-arrow-clockwise',
+                className: 'btn btn-outline-danger',
+                onClick: refreshFileList,
+            },
+        });
     }
 }
 
@@ -71,13 +78,11 @@ export function displayFileList(files) {
 
     // 空列表處理
     if (files.length === 0) {
-        fileListContainer.innerHTML = `
-            <div class="text-center text-muted py-5">
-                <i class="bi bi-inbox display-1"></i>
-                <p class="mt-3">此分類目前沒有檔案</p>
-                <p class="small">上傳一些檔案來開始使用</p>
-            </div>
-        `;
+        showEmptyState(fileListContainer, {
+            icon: 'bi bi-inbox',
+            title: '此分類目前沒有檔案',
+            message: '上傳一些檔案來開始使用。',
+        });
         return;
     }
 
@@ -214,13 +219,11 @@ function removeFileListItem(filename) {
         return;
     }
 
-    fileListContainer.innerHTML = `
-        <div class="text-center text-muted py-5">
-            <i class="bi bi-inbox display-1"></i>
-            <p class="mt-3">此分類目前沒有檔案</p>
-            <p class="small">上傳一些檔案來開始使用</p>
-        </div>
-    `;
+    showEmptyState(fileListContainer, {
+        icon: 'bi bi-inbox',
+        title: '此分類目前沒有檔案',
+        message: '上傳一些檔案來開始使用。',
+    });
 }
 
 function updateFileCountBadge(delta) {

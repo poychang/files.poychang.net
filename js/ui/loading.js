@@ -5,24 +5,88 @@
 
 import { DOM_IDS } from '../core/index.js';
 
+function escapeHtml(value = '') {
+    return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+}
+
+function normalizeIconClass(icon = '') {
+    if (!icon) return '';
+    return icon.startsWith('bi ') ? icon : `bi ${icon}`;
+}
+
+function renderState(container, options) {
+    if (!container) return;
+
+    const {
+        stateClass,
+        icon,
+        title,
+        message,
+        messageClass,
+        spinner = false,
+        spinnerClass = 'text-primary',
+        action,
+    } = options;
+
+    const safeTitle = escapeHtml(title);
+    const safeMessage = escapeHtml(message);
+    const hasAction = action?.label && typeof action?.onClick === 'function';
+    const safeActionLabel = hasAction ? escapeHtml(action.label) : '';
+    const actionIcon = action?.icon ? `<i class="${escapeHtml(action.icon)} me-2" aria-hidden="true"></i>` : '';
+    const actionClass = action?.className ? escapeHtml(action.className) : 'btn btn-outline-secondary';
+
+    container.innerHTML = `
+        <div class="status-state ${stateClass} d-flex align-items-center justify-content-center text-center py-5 px-3">
+            <div class="status-state__body mx-auto">
+                ${
+                    spinner
+                        ? `<div class="spinner-border status-state__spinner ${spinnerClass} mb-3" role="status">
+                            <span class="visually-hidden">${safeTitle}</span>
+                        </div>`
+                        : `<i class="${escapeHtml(normalizeIconClass(icon))} status-state__icon display-4 mb-3 d-inline-flex ${stateClass === 'error-state' ? 'text-danger' : 'text-muted'}" aria-hidden="true"></i>`
+                }
+                <p class="status-state__title h5 mb-2 ${stateClass === 'error-state' ? 'text-danger' : ''}">${safeTitle}</p>
+                ${safeMessage ? `<p class="status-state__message ${messageClass} mb-0">${safeMessage}</p>` : ''}
+                ${
+                    hasAction
+                        ? `<button type="button" class="${actionClass} status-state__action mt-3" data-state-action="true">
+                            ${actionIcon}${safeActionLabel}
+                        </button>`
+                        : ''
+                }
+            </div>
+        </div>
+    `;
+
+    if (hasAction) {
+        container.querySelector('[data-state-action="true"]')?.addEventListener('click', action.onClick);
+    }
+}
+
 /**
  * 顯示載入狀態
  * @param {HTMLElement} container - 容器元素
  * @param {string} message - 載入訊息
  */
 export function showLoading(container, message = '載入中...') {
-    if (!container) return;
+    const options = typeof message === 'object'
+        ? message
+        : { title: message };
 
-    const loadingHtml = `
-        <div class="text-center py-5 loading-indicator">
-            <div class="spinner-border text-primary mb-3" role="status">
-                <span class="visually-hidden">${message}</span>
-            </div>
-            <p class="text-muted">${message}</p>
-        </div>
-    `;
-
-    container.innerHTML = loadingHtml;
+    renderState(container, {
+        stateClass: 'loading-indicator',
+        title: options.title ?? '載入中...',
+        message: options.message ?? '',
+        messageClass: 'text-muted',
+        spinner: true,
+        spinnerClass: options.spinnerClass ?? 'text-primary',
+        action: options.action,
+    });
 }
 
 /**
@@ -45,16 +109,18 @@ export function hideLoading(container) {
  * @param {string} message - 顯示訊息
  */
 export function showEmptyState(container, icon = 'bi-inbox', message = '目前沒有內容') {
-    if (!container) return;
+    const options = typeof icon === 'object'
+        ? icon
+        : { icon, title: message };
 
-    const emptyHtml = `
-        <div class="text-center py-5 empty-state">
-            <i class="${icon} display-1 text-muted"></i>
-            <p class="text-muted mt-3">${message}</p>
-        </div>
-    `;
-
-    container.innerHTML = emptyHtml;
+    renderState(container, {
+        stateClass: 'empty-state',
+        icon: options.icon ?? 'bi bi-inbox',
+        title: options.title ?? '目前沒有內容',
+        message: options.message ?? '',
+        messageClass: 'text-muted',
+        action: options.action,
+    });
 }
 
 /**
@@ -63,16 +129,18 @@ export function showEmptyState(container, icon = 'bi-inbox', message = '目前�
  * @param {string} message - 錯誤訊息
  */
 export function showErrorState(container, message = '載入失敗，請稍後再試') {
-    if (!container) return;
+    const options = typeof message === 'object'
+        ? message
+        : { title: message };
 
-    const errorHtml = `
-        <div class="text-center py-5 error-state">
-            <i class="bi bi-exclamation-triangle display-1 text-danger"></i>
-            <p class="text-danger mt-3">${message}</p>
-        </div>
-    `;
-
-    container.innerHTML = errorHtml;
+    renderState(container, {
+        stateClass: 'error-state',
+        icon: options.icon ?? 'bi bi-exclamation-triangle',
+        title: options.title ?? '載入失敗，請稍後再試',
+        message: options.message ?? '',
+        messageClass: 'text-danger',
+        action: options.action,
+    });
 }
 
 /**
