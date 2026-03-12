@@ -31,10 +31,12 @@ import {
     setCurrentSubFolder,
     getCurrentSubFolder,
     getFileUrl,
+    prepareUploadBatch,
     uploadFile,
     uploadFiles,
     listFiles,
     deleteFile,
+    getExistingFilesIndex,
     resetCurrentFolder
 } from './file-operations.js';
 
@@ -125,10 +127,12 @@ export {
     setCurrentSubFolder,
     getCurrentSubFolder,
     getFileUrl,
+    prepareUploadBatch,
     uploadFile,
     uploadFiles,
     listFiles,
-    deleteFile
+    deleteFile,
+    getExistingFilesIndex
 };
 
 // 資料夾操作相關

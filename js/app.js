@@ -5,7 +5,7 @@
 
 import { initCore, CONFIG, CUSTOM_EVENTS, DOM_IDS, TOKEN_STORAGE_MODES, createLogger } from './core/index.js';
 import { initAuth } from './auth.js';
-import { initRepo, uploadFiles, getCurrentSubFolder } from './repo/index.js';
+import { initRepo, prepareUploadBatch, uploadFiles, getCurrentSubFolder } from './repo/index.js';
 import {
     initUI,
     showMessage,
@@ -80,25 +80,32 @@ async function handleFileUpload(files) {
         return;
     }
 
-    const currentFolder = getCurrentSubFolder();
-    const targetPath = `${CONFIG.fileBasePath}/${currentFolder}/`;
+    try {
+        const currentFolder = getCurrentSubFolder();
+        const targetPath = `${CONFIG.fileBasePath}/${currentFolder}/`;
+        const uploadBatch = await prepareUploadBatch(files);
 
-    // 使用 Modal 確認上傳
-    showUploadConfirmModal(files.length, targetPath, async () => {
-        await performUpload(files);
-    });
+        // 使用 Modal 確認上傳
+        showUploadConfirmModal(files.length, targetPath, async () => {
+            await performUpload(files, uploadBatch.existingFilesIndex);
+        }, {
+            overwriteFiles: uploadBatch.overwriteFiles,
+        });
+    } catch (error) {
+        showError(error.userMessage || `無法確認上傳內容：${error.message}`);
+    }
 }
 
 /**
  * 執行檔案上傳
  */
-async function performUpload(files) {
+async function performUpload(files, existingFilesIndex) {
     try {
         showInfo(buildUploadStartMessage(files.length));
 
         const results = await uploadFiles(files, (progress) => {
             showUploadProgress(progress);
-        });
+        }, { existingFilesIndex });
 
         // 統計結果
         const successCount = results.filter(r => r.success).length;

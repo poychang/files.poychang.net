@@ -46,6 +46,46 @@ function getFilePath(filename) {
 }
 
 /**
+ * 取得當前資料夾中既有檔案的 SHA 對照表
+ * @param {string} [subFolder] - 子資料夾名稱，不指定則使用當前資料夾
+ * @returns {Promise<Map<string, string>>} 檔名到 SHA 的對照表
+ */
+export async function getExistingFilesIndex(subFolder) {
+    const folder = subFolder || currentSubFolder;
+    const path = `${CONFIG.fileBasePath}/${folder}`;
+
+    try {
+        const contents = await getRepoContents(path);
+        const fileEntries = contents.filter((item) => item.type === 'file' && item.name !== '.gitkeep');
+
+        return new Map(fileEntries.map((file) => [file.name, file.sha]));
+    } catch (error) {
+        if (isGitHubErrorStatus(error, API_ERROR_CODES.NOT_FOUND)) {
+            return new Map();
+        }
+
+        throw translateGitHubError(error, `讀取分類「${folder}」的既有檔案資訊`);
+    }
+}
+
+/**
+ * 建立本次上傳的批次資訊
+ * @param {FileList|Array<File>} files - 要上傳的檔案列表
+ * @returns {Promise<{existingFilesIndex: Map<string, string>, overwriteFiles: string[]}>} 批次資訊
+ */
+export async function prepareUploadBatch(files) {
+    const existingFilesIndex = await getExistingFilesIndex();
+    const overwriteFiles = [...new Set(Array.from(files)
+        .map((file) => file.name)
+        .filter((filename) => existingFilesIndex.has(filename)))];
+
+    return {
+        existingFilesIndex,
+        overwriteFiles,
+    };
+}
+
+/**
  * 取得 GitHub Pages 的檔案 URL
  * @param {string} filename - 檔案名稱
  * @returns {string} GitHub Pages URL
@@ -57,9 +97,11 @@ export function getFileUrl(filename) {
 /**
  * 上傳單個檔案到 GitHub
  * @param {File} file - 要上傳的檔案
+ * @param {Object} [options] - 上傳選項
+ * @param {string|null} [options.existingSha] - 已存在檔案的 SHA
  * @returns {Promise<Object>} 上傳結果
  */
-export async function uploadFile(file) {
+export async function uploadFile(file, options = {}) {
     if (!file) {
         throw new Error(ERROR_MESSAGES.FILE_NOT_SELECTED);
     }
@@ -68,10 +110,13 @@ export async function uploadFile(file) {
         // 轉換檔案為 Base64
         const content = await fileToBase64(file);
         const path = getFilePath(file.name);
+        let sha = options.existingSha ?? null;
 
-        // 檢查檔案是否已存在
-        const existingFile = await checkFileExists(path);
-        const sha = existingFile ? existingFile.sha : null;
+        if (sha === null && Object.prototype.hasOwnProperty.call(options, 'existingSha') === false) {
+            // 保留單檔上傳時的向後相容行為
+            const existingFile = await checkFileExists(path);
+            sha = existingFile ? existingFile.sha : null;
+        }
 
         // 上傳或更新檔案
         const data = await putRepoFile(
@@ -96,17 +141,22 @@ export async function uploadFile(file) {
  * 批次上傳多個檔案
  * @param {FileList|Array} files - 要上傳的檔案列表
  * @param {Function} progressCallback - 進度回調函數
+ * @param {Object} [options] - 批次上傳選項
+ * @param {Map<string, string>} [options.existingFilesIndex] - 同批次共享的檔名 SHA 對照表
  * @returns {Promise<Array>} 上傳結果列表
  */
-export async function uploadFiles(files, progressCallback) {
+export async function uploadFiles(files, progressCallback, options = {}) {
     const results = [];
     const total = files.length;
+    const existingFilesIndex = options.existingFilesIndex || await getExistingFilesIndex();
 
     for (let i = 0; i < files.length; i++) {
         const file = files[i];
         try {
-            const result = await uploadFile(file);
+            const existingSha = existingFilesIndex.get(file.name) || null;
+            const result = await uploadFile(file, { existingSha });
             results.push({ success: true, file: file.name, result });
+            existingFilesIndex.set(file.name, result.sha);
 
             if (progressCallback) {
                 progressCallback({
