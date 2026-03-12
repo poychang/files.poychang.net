@@ -1,31 +1,25 @@
 /**
  * 資料夾列表管理模組
- * 處理資料夾列表的顯示、建立、刪除等操作
+ * 只負責資料夾列表的渲染與互動收集。
  */
 
+import { DOM_IDS } from '../core/index.js';
+import { showError } from './toast.js';
 import {
-    listSubFolders,
-    createSubFolder,
-    deleteSubFolder,
-    waitForFolderState,
-} from '../repo/folder-operations.js';
-import { setCurrentSubFolder } from '../repo/file-operations.js';
-import { DOM_IDS, emitFolderSelected } from '../core/index.js';
-import { showSuccess, showError } from './toast.js';
-import {
-    showButtonLoading,
-    hideButtonLoading,
     showLoading,
     showEmptyState,
     showErrorState,
 } from './loading.js';
 import { showDeleteFolderModal } from './modal.js';
-import { showFolderFiles } from './views.js';
 import { reapplyFilter } from './folder-filter.js';
 
 // DOM 元素
 let foldersList, refreshFoldersBtn;
 let newFolderInput, createFolderBtn;
+let onRefreshFolders = null;
+let onSelectFolder = null;
+let onCreateFolder = null;
+let onDeleteFolder = null;
 
 /**
  * 初始化資料夾管理
@@ -38,7 +32,9 @@ export function initFolders() {
 
     // 綁定建立資料夾按鈕
     if (createFolderBtn) {
-        createFolderBtn.addEventListener('click', handleCreateFolder);
+        createFolderBtn.addEventListener('click', () => {
+            void handleCreateFolder();
+        });
     }
 
     // 支援 Enter 鍵建立資料夾
@@ -52,37 +48,54 @@ export function initFolders() {
 
     // 重新整理資料夾按鈕
     if (refreshFoldersBtn) {
-        refreshFoldersBtn.addEventListener('click', refreshFoldersList);
+        refreshFoldersBtn.addEventListener('click', () => {
+            void onRefreshFolders?.();
+        });
     }
 }
 
 /**
- * 重新整理資料夾列表
+ * 設定資料夾互動處理器
  */
-export async function refreshFoldersList() {
-    try {
-        if (!foldersList) return;
+export function setFolderHandlers(handlers = {}) {
+    onRefreshFolders = handlers.onRefresh ?? onRefreshFolders;
+    onSelectFolder = handlers.onSelect ?? onSelectFolder;
+    onCreateFolder = handlers.onCreate ?? onCreateFolder;
+    onDeleteFolder = handlers.onDelete ?? onDeleteFolder;
+}
 
-        showLoading(foldersList, {
-            title: '載入分類列表...',
-            message: '正在同步 GitHub repository 內的分類。',
-        });
+/**
+ * 顯示資料夾載入狀態
+ */
+export function showFoldersLoading() {
+    if (!foldersList) return;
 
-        const folders = await listSubFolders();
-        displayFoldersList(folders);
-    } catch (error) {
-        showError(error.message);
-        showErrorState(foldersList, {
-            title: '載入分類失敗',
-            message: error.message,
-            action: {
-                label: '重新整理',
-                icon: 'bi bi-arrow-clockwise',
-                className: 'btn btn-outline-danger',
-                onClick: refreshFoldersList,
+    showLoading(foldersList, {
+        title: '載入分類列表...',
+        message: '正在同步 GitHub repository 內的分類。',
+    });
+}
+
+/**
+ * 顯示資料夾列表錯誤狀態
+ * @param {Error} error - 錯誤物件
+ */
+export function showFoldersError(error) {
+    if (!foldersList) return;
+
+    showError(error.message);
+    showErrorState(foldersList, {
+        title: '載入分類失敗',
+        message: error.message,
+        action: {
+            label: '重新整理',
+            icon: 'bi bi-arrow-clockwise',
+            className: 'btn btn-outline-danger',
+            onClick: () => {
+                void onRefreshFolders?.();
             },
-        });
-    }
+        },
+    });
 }
 
 /**
@@ -108,7 +121,7 @@ export function displayFoldersList(folders) {
     foldersList.querySelectorAll('.folder-list-item').forEach((item) => {
         item.addEventListener('click', () => {
             const folderName = item.dataset.folderName;
-            selectFolder(folderName);
+            void onSelectFolder?.(folderName);
         });
     });
 
@@ -147,36 +160,6 @@ function createFolderListItem(folder) {
 }
 
 /**
- * 選擇資料夾
- * @param {string} folderName - 資料夾名稱
- */
-async function selectFolder(folderName) {
-    // 設定當前資料夾
-    setCurrentSubFolder(folderName);
-
-    // 切換到檔案管理視圖
-    showFolderFiles(folderName);
-
-    // 透過統一事件出口通知其他模組
-    emitFolderSelected(folderName);
-}
-
-async function syncFoldersAfterMutation(folderName, expectedState) {
-    const { folders, synced } = await waitForFolderState({
-        folderName,
-        expectedState,
-    });
-
-    displayFoldersList(folders);
-
-    if (!synced) {
-        showError(`分類清單同步中，請稍後再重新整理確認「${folderName}」的最新狀態。`);
-    }
-
-    return synced;
-}
-
-/**
  * 處理建立資料夾
  */
 async function handleCreateFolder() {
@@ -193,25 +176,7 @@ async function handleCreateFolder() {
         return;
     }
 
-    try {
-        // 顯示載入狀態
-        showButtonLoading(createFolderBtn, '建立中...');
-
-        await createSubFolder(folderName);
-
-        // 清空輸入框
-        newFolderInput.value = '';
-
-        const synced = await syncFoldersAfterMutation(folderName, 'exists');
-        if (synced) {
-            showSuccess(`✓ 已建立分類：${folderName}`);
-        }
-    } catch (error) {
-        showError(error.message);
-    } finally {
-        // 恢復按鈕狀態
-        hideButtonLoading(createFolderBtn);
-    }
+    await onCreateFolder?.(folderName);
 }
 
 /**
@@ -220,26 +185,8 @@ async function handleCreateFolder() {
  */
 function handleDeleteFolderClick(folderName) {
     showDeleteFolderModal(folderName, async () => {
-        await handleDeleteFolder(folderName);
+        await onDeleteFolder?.(folderName);
     });
-}
-
-/**
- * 處理刪除分類
- * @param {string} folderName - 要刪除的分類名稱
- */
-async function handleDeleteFolder(folderName) {
-    try {
-        await deleteSubFolder(folderName);
-
-        const synced = await syncFoldersAfterMutation(folderName, 'missing');
-        if (synced) {
-            showSuccess(`✓ 已刪除分類：${folderName}`);
-        }
-    } catch (error) {
-        showError(error.message);
-        throw error; // 讓 modal 知道發生錯誤
-    }
 }
 
 /**

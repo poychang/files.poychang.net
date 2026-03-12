@@ -10,8 +10,18 @@ import {
     buildUploadSelectionFeedback,
     getSupportedUploadExtensions,
 } from './upload-validation.js';
+import { getFileIcon, formatFileSize } from './utils.js';
+import {
+    listSubFolders,
+    createSubFolder,
+    waitForFolderState,
+    deleteSubFolder,
+} from './folder-operations.js';
 import {
     getCurrentSubFolder,
+    setCurrentSubFolder,
+    listFiles,
+    deleteFile,
     prepareUploadBatch,
     uploadFiles,
     resetCurrentFolder,
@@ -68,10 +78,22 @@ export {
     buildUploadPreflightSummary,
     buildUploadSelectionFeedback,
     getSupportedUploadExtensions,
+    getFileIcon,
+    formatFileSize,
 };
 
 export {
     getCurrentSubFolder,
+    setCurrentSubFolder,
+    listFiles,
+    deleteFile,
     prepareUploadBatch,
     uploadFiles,
+};
+
+export {
+    listSubFolders,
+    createSubFolder,
+    waitForFolderState,
+    deleteSubFolder,
 };

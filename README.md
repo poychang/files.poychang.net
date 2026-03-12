@@ -88,13 +88,19 @@ export const CONFIG = {
 
 - 封裝 GitHub Contents API 操作與錯誤轉譯
 - 處理檔案 / 分類 CRUD、路徑組裝、檔案型別與尺寸工具函式
-- `js/repo/index.js` 只保留給 `js/app.js` 使用的應用程式層 API；UI 子模組應直接匯入各自需要的 repo 子模組
+- `js/repo/index.js` 只保留給 `js/app.js` 使用的高階資料操作；UI 子模組不直接呼叫 repo
 
 ### `js/ui/`
 
 - 管理主題、Toast、Modal、分類列表、檔案列表、上傳互動與畫面切換
 - `js/ui/platform-notice.js` 集中管理平台限制、上傳提醒與連結提示文案
-- `js/ui/index.js` 只負責應用程式啟動初始化與跨功能協調用的高階 UI API
+- `js/ui/index.js` 只負責應用程式啟動初始化與高階 UI API；資料流程由 `js/app.js` 協調
+
+### `js/app.js`
+
+- 作為目前的薄協調層，串接 UI 與 repo
+- 負責分類載入 / 建立 / 刪除、分類切換、檔案列表刷新、檔案刪除與上傳前驗證流程
+- 若後續流程再增加，可在這一層持續收斂，而不是把 GitHub API 細節放回 UI
 
 ## 認證與憑證保存
 

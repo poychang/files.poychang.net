@@ -1,14 +1,9 @@
 /**
  * 檔案列表管理模組
- * 處理檔案列表的顯示、刪除等操作
+ * 只負責檔案列表的渲染與互動收集。
  */
 
-import {
-    listFiles,
-    deleteFile,
-} from '../repo/file-operations.js';
-import { getFileIcon, formatFileSize } from '../repo/utils.js';
-import { DOM_IDS, CUSTOM_EVENTS } from '../core/index.js';
+import { DOM_IDS } from '../core/index.js';
 import { showSuccess, showError } from './toast.js';
 import { showLoading, showEmptyState, showErrorState } from './loading.js';
 import { showDeleteFileModal } from './modal.js';
@@ -16,6 +11,8 @@ import { buildCopyLinkMessage } from './platform-notice.js';
 
 // DOM 元素
 let fileListContainer, fileCountBadge, refreshFilesBtn;
+let onRefreshFiles = null;
+let onDeleteFile = null;
 
 /**
  * 初始化檔案管理
@@ -27,40 +24,52 @@ export function initFiles() {
 
     // 重新整理按鈕
     if (refreshFilesBtn) {
-        refreshFilesBtn.addEventListener('click', refreshFileList);
+        refreshFilesBtn.addEventListener('click', () => {
+            void onRefreshFiles?.();
+        });
     }
+}
 
-    // 監聽資料夾選擇事件
-    window.addEventListener(CUSTOM_EVENTS.FOLDER_SELECTED, () => {
-        refreshFileList();
+/**
+ * 設定檔案互動處理器
+ */
+export function setFileHandlers(handlers = {}) {
+    onRefreshFiles = handlers.onRefresh ?? onRefreshFiles;
+    onDeleteFile = handlers.onDelete ?? onDeleteFile;
+}
+
+/**
+ * 顯示檔案載入狀態
+ */
+export function showFilesLoading() {
+    if (!fileListContainer) return;
+
+    showLoading(fileListContainer, {
+        title: '載入檔案列表...',
+        message: '正在讀取目前分類中的檔案。',
     });
 }
 
 /**
- * 重新整理檔案列表
+ * 顯示檔案列表錯誤狀態
+ * @param {Error} error - 錯誤物件
  */
-export async function refreshFileList() {
-    try {
-        showLoading(fileListContainer, {
-            title: '載入檔案列表...',
-            message: '正在讀取目前分類中的檔案。',
-        });
+export function showFilesError(error) {
+    if (!fileListContainer) return;
 
-        const files = await listFiles();
-        displayFileList(files);
-    } catch (error) {
-        showError(error.message);
-        showErrorState(fileListContainer, {
-            title: '載入檔案失敗',
-            message: error.message,
-            action: {
-                label: '重新整理',
-                icon: 'bi bi-arrow-clockwise',
-                className: 'btn btn-outline-danger',
-                onClick: refreshFileList,
+    showError(error.message);
+    showErrorState(fileListContainer, {
+        title: '載入檔案失敗',
+        message: error.message,
+        action: {
+            label: '重新整理',
+            icon: 'bi bi-arrow-clockwise',
+            className: 'btn btn-outline-danger',
+            onClick: () => {
+                void onRefreshFiles?.();
             },
-        });
-    }
+        },
+    });
 }
 
 /**
@@ -109,8 +118,9 @@ export function displayFileList(files) {
  * @returns {string} HTML 字串
  */
 function createFileItem(file) {
-    const iconClass = getFileIcon(file.type);
+    const iconClass = file.iconClass || 'bi-file-earmark';
     const isImage = file.type === 'image';
+    const sizeLabel = file.sizeLabel || '';
 
     return `
         <div class="list-group-item file-item" data-filename="${file.name}">
@@ -124,7 +134,7 @@ function createFileItem(file) {
                 </div>
                 <div class="file-info">
                     <div class="file-name">${file.name}</div>
-                    <div class="file-size">${formatFileSize(file.size)}</div>
+                    <div class="file-size">${sizeLabel}</div>
                 </div>
                 <div class="file-actions ms-auto">
                     <button class="btn btn-sm btn-outline-primary btn-copy-link" 
@@ -181,26 +191,8 @@ async function copyFileLink(url, filename) {
  */
 async function confirmDeleteFile(filename, sha) {
     showDeleteFileModal(filename, async () => {
-        try {
-            await deleteFile(filename, sha);
-            removeFileListItem(filename);
-            showSuccess(`✓ 已刪除檔案：${filename}`);
-
-            void syncFileListAfterDeletion(filename);
-        } catch (error) {
-            showError(error.message);
-            throw error;
-        }
+        await onDeleteFile?.(filename, sha);
     });
-}
-
-async function syncFileListAfterDeletion(filename) {
-    try {
-        const files = await listFiles();
-        displayFileList(files);
-    } catch (error) {
-        showError(`檔案已刪除，但重新整理列表失敗：${error.message}`);
-    }
 }
 
 function removeFileListItem(filename) {
@@ -247,5 +239,13 @@ export function getFileListContainer() {
  */
 export function getFileCountBadge() {
     return fileCountBadge;
+}
+
+/**
+ * 以樂觀更新方式移除單一檔案列
+ * @param {string} filename - 檔案名稱
+ */
+export function removeDisplayedFile(filename) {
+    removeFileListItem(filename);
 }
 

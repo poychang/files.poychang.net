@@ -4,18 +4,20 @@
  */
 
 import { initTheme } from './theme.js';
-import { initToast, showSuccess, showError, showInfo } from './toast.js';
+import { initToast, showSuccess, showError, showInfo, showWarning } from './toast.js';
 import { initModal, showUploadConfirmModal } from './modal.js';
 import { initNavbar } from './navbar.js';
 import { initViews, showLoggedOutState, showAuthenticatedHome, showFolderFiles } from './views.js';
 import { initFolderFilter } from './folder-filter.js';
-import { initFolders, refreshFoldersList } from './folders.js';
-import { initFiles, refreshFileList } from './files.js';
+import { initFolders, setFolderHandlers, showFoldersLoading, showFoldersError, displayFoldersList } from './folders.js';
+import { initFiles, setFileHandlers, showFilesLoading, showFilesError, displayFileList, removeDisplayedFile } from './files.js';
 import {
     initUpload,
     showUploadProgress,
     hideUploadProgress,
     getFileInput,
+    configureUploadInput,
+    setUploadHandlers,
 } from './upload.js';
 import {
     initPlatformNotice,
@@ -40,14 +42,24 @@ export {
     showSuccess,
     showError,
     showInfo,
+    showWarning,
     showLoggedOutState,
     showAuthenticatedHome,
     showFolderFiles,
     showUploadProgress,
     hideUploadProgress,
-    refreshFileList,
-    refreshFoldersList,
+    setFolderHandlers,
+    showFoldersLoading,
+    showFoldersError,
+    displayFoldersList,
+    setFileHandlers,
+    showFilesLoading,
+    showFilesError,
+    displayFileList,
+    removeDisplayedFile,
     getFileInput,
+    configureUploadInput,
+    setUploadHandlers,
     showUploadConfirmModal,
     buildUploadStartMessage,
     buildUploadCompletionMessage,

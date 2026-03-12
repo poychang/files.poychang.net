@@ -1,20 +1,15 @@
 /**
  * 檔案上傳管理模組
- * 處理檔案選擇、拖放上傳、上傳進度等操作
+ * 只負責拖放、選檔與上傳進度 UI。
  */
 
-import { DOM_IDS, emitFilesSelected } from '../core/index.js';
-import {
-    buildUploadSelectionFeedback,
-    getSupportedUploadExtensions,
-    validateUploadSelection,
-} from '../repo/upload-validation.js';
-import { showError, showWarning } from './toast.js';
+import { DOM_IDS } from '../core/index.js';
 import { updateProgressBar, resetProgressBar } from './loading.js';
 
 // DOM 元素
 let dropZone, fileInput, selectFilesBtn;
 let uploadProgress, progressBar, uploadStatus;
+let onFilesSelected = null;
 
 /**
  * 初始化上傳功能
@@ -31,9 +26,6 @@ export function initUpload() {
     if (dropZone && fileInput && selectFilesBtn) {
         setupDragAndDrop();
         selectFilesBtn.addEventListener('click', () => fileInput.click());
-        fileInput.accept = getSupportedUploadExtensions()
-            .map((extension) => `.${extension}`)
-            .join(',');
     }
 
     // 監聽檔案選擇事件
@@ -116,20 +108,7 @@ function handleDrop(e) {
  * @param {FileList} files - 檔案列表
  */
 function handleFilesSelected(files) {
-    const selectionResult = validateUploadSelection(files);
-    const feedbackMessage = buildUploadSelectionFeedback(selectionResult);
-
-    if (feedbackMessage) {
-        if (selectionResult.validFiles.length === 0) {
-            showError(feedbackMessage);
-            clearFileInput();
-            return;
-        }
-
-        showWarning(feedbackMessage);
-    }
-
-    emitFilesSelected(selectionResult.validFiles, selectionResult);
+    onFilesSelected?.(Array.from(files || []));
 }
 
 /**
@@ -218,15 +197,25 @@ export function getUploadStatus() {
 }
 
 /**
- * 設定檔案選擇處理器（用於外部自訂處理邏輯）
+ * 設定上傳區域接受的副檔名
+ * @param {string[]} extensions - 支援副檔名
+ */
+export function configureUploadInput(extensions = []) {
+    if (!fileInput) return;
+
+    fileInput.accept = extensions
+        .map((extension) => `.${extension}`)
+        .join(',');
+}
+
+/**
+ * 設定檔案選擇處理器
  * @param {Function} handler - 處理函數
  */
-export function setFileSelectHandler(handler) {
-    window.addEventListener('files:selected', (e) => {
-        if (handler) {
-            handler(e.detail.files);
-        }
-    });
+export function setUploadHandlers(handlers = {}) {
+    if (handlers.onFilesSelected) {
+        onFilesSelected = handlers.onFilesSelected;
+    }
 }
 
 
