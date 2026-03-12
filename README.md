@@ -1,15 +1,21 @@
 # 檔案託管服務
 
-這是一個部署在 GitHub Pages 的單頁應用程式，讓使用者透過 GitHub Personal Access Token 直接管理儲存在同一個 repository 內的檔案。
+這是一個部署在 GitHub Pages 的純前端單頁應用程式，讓使用者透過 GitHub Personal Access Token 直接管理同一個 repository 內 `storage/` 目錄下的檔案。
 
-## 功能特色
+目前專案沒有建置流程，也沒有後端服務；`index.html` 直接載入 ES Modules、Bootstrap CDN 與 Octokit。
 
+## 目前功能
+
+- 使用 GitHub Personal Access Token 登入，並在登入時驗證 `GET /user`
+- 支援 `sessionStorage` 與「記住我」的 `localStorage` 儲存模式
 - 建立、過濾、刪除分類資料夾
-- 選取分類後上傳多個檔案
-- 顯示檔案列表、檔案大小與圖片預覽
-- 複製 GitHub Pages 公開連結
-- 亮色 / 暗色主題切換
-- 使用 Bootstrap Modal / Toast 提供操作回饋
+- 進入分類後拖放或選取多個檔案上傳
+- 上傳前顯示確認 Modal，並在上傳過程顯示逐檔進度
+- 自動略過超過 GitHub Contents API `100 MB` 限制的檔案
+- 顯示檔案列表、檔案大小、圖片預覽與刪除操作
+- 複製 GitHub Pages 公開連結，並提示 GitHub Pages 快取延遲
+- 提供亮色 / 暗色主題切換
+- 在登入後顯示平台限制與服務邊界提示
 
 ## 快速開始
 
@@ -34,7 +40,7 @@
 請直接修改 `js/core/config.js`：
 
 ```javascript
-const CONFIG = {
+export const CONFIG = {
     defaultRepo: {
         owner: 'poychang',
         repo: 'files.poychang.net',
@@ -46,99 +52,56 @@ const CONFIG = {
 };
 ```
 
-### 3. 啟用 GitHub Pages
+### 3. 本機預覽
+
+這個專案是靜態網站，開發時請用任一靜態伺服器提供目錄，不要直接以 `file://` 開啟 `index.html`。
+
+本機確認重點：
+
+1. `js/core/config.js` 指向正確的 repository、branch 與 GitHub Pages 網址
+2. `storage/` 目錄已存在，且至少保留一個 `.gitkeep`
+3. 瀏覽器可以連到 GitHub API、[jsDelivr](https://www.jsdelivr.com/) 與 [esm.sh](https://esm.sh/)
+
+### 4. 啟用 GitHub Pages
 
 1. 到 repository 的 `Settings -> Pages`
 2. 選擇 `Deploy from a branch`
 3. 指定要發佈的 branch
+4. 若有自訂網域，確認 `CNAME` 內容與 `githubPagesBaseUrl` 一致
 
-### 4. 使用流程
+### 5. 使用流程
 
 1. 開啟網站並以 Personal Access Token 登入
 2. 預設只在本次瀏覽器工作階段使用 Token；只有在私人裝置上才建議勾選「記住我」
-3. 建議使用只授權單一 repository 的專用 Token，不與其他用途共用
-4. 建立或選取分類
-5. 上傳檔案
-6. 在檔案列表中複製連結或刪除檔案
-
-## 專案結構
-
-```text
-files.poychang.net/
-├── index.html
-├── README.md
-├── css/
-│   ├── main.css
-│   ├── variables.css
-│   ├── base.css
-│   ├── navbar.css
-│   ├── forms.css
-│   ├── cards.css
-│   ├── folders.css
-│   ├── files.css
-│   ├── buttons.css
-│   ├── modals.css
-│   ├── notifications.css
-│   ├── footer.css
-│   ├── animations.css
-│   ├── users.css
-│   ├── utilities.css
-│   └── README.md
-├── js/
-│   ├── app.js
-│   ├── auth.js
-│   ├── core/
-│   │   ├── config.js
-│   │   ├── constants.js
-│   │   ├── event-bus.js
-│   │   ├── index.js
-│   │   └── logger.js
-│   ├── repo/
-│   │   ├── file-operations.js
-│   │   ├── folder-operations.js
-│   │   ├── github-api.js
-│   │   ├── index.js
-│   │   └── utils.js
-│   └── ui/
-│       ├── files.js
-│       ├── folder-filter.js
-│       ├── folders.js
-│       ├── index.js
-│       ├── loading.js
-│       ├── modal.js
-│       ├── navbar.js
-│       ├── theme.js
-│       ├── toast.js
-│       ├── upload.js
-│       └── views.js
-└── storage/
-```
+3. 建立或選取分類
+4. 拖放或選取檔案，上傳前確認目標路徑
+5. 在檔案列表中複製公開連結或刪除檔案
 
 ## 模組分工
 
 ### `js/core/`
 
 - 放置設定、共用常數、事件匯流排與 logger
-- `CUSTOM_EVENTS` 是跨模組事件名稱的單一來源
+- `CUSTOM_EVENTS`、`DOM_IDS`、`PLATFORM_LIMITS` 都集中在 `js/core/constants.js`
 
 ### `js/repo/`
 
-- 封裝 GitHub API 存取
-- 處理檔案 / 分類的 CRUD 與路徑、型別等工具函式
+- 封裝 GitHub Contents API 操作與錯誤轉譯
+- 處理檔案 / 分類 CRUD、路徑組裝、檔案型別與尺寸工具函式
 
 ### `js/ui/`
 
-- 管理主題、Toast、Modal、分類列表、檔案列表、上傳互動與視圖切換
+- 管理主題、Toast、Modal、分類列表、檔案列表、上傳互動與畫面切換
+- `js/ui/platform-notice.js` 集中管理平台限制、上傳提醒與連結提示文案
 - 透過 `js/ui/index.js` 統一初始化
 
-## 登入與憑證保存
+## 認證與憑證保存
 
 - 這是純前端 PAT 模式，不是 GitHub OAuth 或後端代理流程
 - 預設使用 `sessionStorage`，關閉分頁或瀏覽器後不再自動沿用 Token
 - 只有在使用者勾選「記住我」時，才會把 Token 寫入 `localStorage`
 - 登出或 Token 驗證失敗時，系統會清除 `sessionStorage` 與 `localStorage` 內殘留的憑證資料
 - 若裝置可能被他人共用，請不要啟用「記住我」
-- 建議建立專用 fine-grained PAT，將權限限制在單一 repository，避免共用既有開發或維運 Token
 
 ## GitHub Token 最小權限
 
@@ -154,27 +117,28 @@ files.poychang.net/
 - fine-grained PAT：`Repository access` 限定單一 repository，`Contents` 設為 `Read and write`
 - classic PAT：僅在無法使用 fine-grained PAT 時才考慮；private repository 常需 `repo` scope，風險較高
 
-如果 Token 缺少寫入權限，登入可能成功，但上傳、建立分類、刪除檔案時會收到 GitHub 403。介面現在會明確提示你檢查 `Contents: Read and write`。
+如果 Token 缺少寫入權限，登入可能成功，但上傳、建立分類、刪除檔案時會收到 GitHub 403。介面會依 GitHub 回應盡量提示你檢查 `Contents: Read and write`。
 
 ## 技術現況
 
 - 前端：原生 JavaScript ES Modules
 - UI：Bootstrap 5、Bootstrap Icons
-- API：Octokit
+- API Client：`@octokit/core`（由 `esm.sh` 載入）
 - 託管：GitHub Pages
 - 認證：GitHub Personal Access Token
 - 事件策略：以 `CUSTOM_EVENTS` 與 `event-bus` 為跨模組事件入口
+- 部署型態：純靜態檔案，無 bundler、無 transpile、無 server runtime
 
 ## 已知限制與取捨
 
 - 這是 GitHub repository / GitHub Pages 的管理介面，不是一般雲端儲存服務，也不是即時同步的物件儲存服務
-- Token 預設只保存在目前瀏覽器工作階段；只有勾選「記住我」才會持久保存到 `localStorage`
-- 單一檔案仍受 GitHub Contents API 的 `100 MB` 限制
+- 單一檔案受 GitHub Contents API 的 `100 MB` 限制；超過時 UI 會直接略過並提示
 - 這個工具較適合少量靜態資產與分享檔案；長期累積大型二進位檔會讓 repository 歷史與同步成本快速增加
 - GitHub Contents API 有速率限制；短時間大量上傳、刪除或重新整理時，請求可能被暫時限制
 - GitHub Pages 與 CDN 快取更新通常需要數十秒，偶爾可能更久；剛上傳或覆蓋後不一定會立即對外可見
 - 建立或刪除分類後，介面會延遲約 1 秒再刷新，以等待 GitHub API 狀態一致
 - 檔案列表會略過 `.gitkeep`
+- 刪除分類使用 Bootstrap Modal 確認；刪除單一檔案目前仍使用瀏覽器原生 `confirm()`
 
 ## 維護指引
 
@@ -182,14 +146,16 @@ files.poychang.net/
 - 新增 DOM 節點識別碼時，先更新 `js/core/constants.js` 的 `DOM_IDS`
 - 主要初始化流程在 `js/app.js`
 - UI 子模組統一由 `js/ui/index.js` 串接
+- 若調整平台限制或提醒文案，優先更新 `js/core/constants.js` 與 `js/ui/platform-notice.js`
+- 若調整樣式模組，另可同步更新 `css/README.md`
 
 ## 除錯
 
 1. 開啟瀏覽器開發者工具觀察 logger 輸出
-2. 檢查 `js/core/event-bus.js` 與 `CUSTOM_EVENTS` 是否一致
-3. 檢查 `js/core/config.js` 的 repository 與 GitHub Pages 設定是否正確
+2. 檢查 `js/core/config.js` 的 repository、branch 與 GitHub Pages 設定是否正確
+3. 檢查 `js/core/event-bus.js` 與 `CUSTOM_EVENTS` 是否一致
+4. 檢查 GitHub API 回應是否帶出權限或路徑錯誤
 
 ## 授權
 
 MIT License
-
