@@ -1,6 +1,6 @@
 /**
- * 工具函數模組
- * 提供檔案處理相關的工具函數
+ * Repo - 工具函數模組
+ * 提供檔案操作所需的輔助功能
  */
 
 import { FILE_EXTENSIONS, FILE_ICON_MAP } from '../core/index.js';
@@ -8,13 +8,13 @@ import { FILE_EXTENSIONS, FILE_ICON_MAP } from '../core/index.js';
 /**
  * 將檔案轉換為 Base64
  * @param {File} file - 要轉換的檔案
- * @returns {Promise<string>} Base64 編碼的字串
+ * @returns {Promise<string>} Base64 編碼後的內容
  */
 export function fileToBase64(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
-            // 移除 data URL 的前綴，只保留 base64 內容
+            // 去除 data URL 前綴，只保留 base64 部分
             const base64 = reader.result.split(',')[1];
             resolve(base64);
         };
@@ -47,8 +47,8 @@ export function getFileIcon(type) {
 
 /**
  * 格式化檔案大小
- * @param {number} bytes - 位元組大小
- * @returns {string} 格式化後的檔案大小
+ * @param {number} bytes - 位元組數
+ * @returns {string} 可讀的檔案大小
  */
 export function formatFileSize(bytes) {
     if (bytes === 0) return '0 Bytes';
@@ -76,24 +76,24 @@ export function sanitizeFolderName(folderName) {
  */
 export function isValidFilename(filename) {
     if (!filename || filename.trim() === '') return false;
-    // 檢查是否包含非法字元
+    // 檢查不允許的特殊字元
     const illegalChars = /[<>:"|?*\x00-\x1F]/;
     return !illegalChars.test(filename);
 }
 
 /**
- * 取得檔案副檔名
+ * 取得副檔名
  * @param {string} filename - 檔案名稱
- * @returns {string} 副檔名 (小寫)
+ * @returns {string} 副檔名（小寫）
  */
 export function getFileExtension(filename) {
     return filename.split('.').pop().toLowerCase();
 }
 
 /**
- * 取得支援的檔案類型清單
- * @returns {Object} 檔案類型對應表
+ * 取得支援的副檔名清單
+ * @returns {Object} 檔案類型對應的副檔名
  */
 export function getSupportedExtensions() {
-    return { ...EXTENSIONS };
+    return { ...FILE_EXTENSIONS };
 }

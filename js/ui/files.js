@@ -9,9 +9,9 @@ import {
     getFileIcon,
     formatFileSize,
 } from '../repo/index.js';
-import { DOM_IDS, CUSTOM_EVENTS, emitFileDeleted } from '../core/index.js';
+import { DOM_IDS, CUSTOM_EVENTS } from '../core/index.js';
 import { showSuccess, showError } from './toast.js';
-import { showLoading, showEmptyState, showErrorState, showButtonLoading, hideButtonLoading } from './loading.js';
+import { showLoading, showButtonLoading, hideButtonLoading } from './loading.js';
 
 // DOM 元素
 let fileListContainer, fileCountBadge, refreshFilesBtn;
@@ -30,7 +30,7 @@ export function initFiles() {
     }
 
     // 監聽資料夾選擇事件
-    window.addEventListener('folder:selected', () => {
+    window.addEventListener(CUSTOM_EVENTS.FOLDER_SELECTED, () => {
         refreshFileList();
     });
 }

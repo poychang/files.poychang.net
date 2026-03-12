@@ -68,6 +68,7 @@ export const CUSTOM_EVENTS = {
     AUTH_SUCCESS: 'auth:success',
     AUTH_LOGOUT: 'auth:logout',
     FILES_SELECTED: 'files:selected',
+    FOLDER_SELECTED: 'folder:selected',
     FOLDER_CHANGED: 'folder:changed',
     FOLDER_CREATED: 'folder:created',
     FOLDER_DELETED: 'folder:deleted',

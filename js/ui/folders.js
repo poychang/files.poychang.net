@@ -9,9 +9,9 @@ import {
     deleteSubFolder,
     setCurrentSubFolder,
 } from '../repo/index.js';
-import { DOM_IDS, emitFolderChanged, emitFolderCreated, emitFolderDeleted } from '../core/index.js';
-import { showSuccess, showError, showInfo } from './toast.js';
-import { showLoading, showEmptyState, showErrorState, showButtonLoading, hideButtonLoading } from './loading.js';
+import { DOM_IDS, emitFolderSelected } from '../core/index.js';
+import { showSuccess, showError } from './toast.js';
+import { showButtonLoading, hideButtonLoading } from './loading.js';
 import { showDeleteFolderModal } from './modal.js';
 import { showFileManagementView } from './views.js';
 import { reapplyFilter } from './folder-filter.js';
@@ -152,9 +152,8 @@ async function selectFolder(folderName) {
     // 切換到檔案管理視圖
     showFileManagementView(folderName);
 
-    // 觸發檔案列表重新整理事件
-    const event = new CustomEvent('folder:selected', { detail: { folderName } });
-    window.dispatchEvent(event);
+    // 透過統一事件出口通知其他模組
+    emitFolderSelected(folderName);
 }
 
 /**

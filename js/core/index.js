@@ -11,7 +11,7 @@
  */
 
 // ========== 配置模組 ==========
-export { 
+export {
     CONFIG,
     getRepoInfo,
     getFileBasePath,
@@ -21,7 +21,7 @@ export {
 } from './config.js';
 
 // ========== 常量模組 ==========
-export { 
+export {
     FILE_EXTENSIONS,
     FILE_ICON_MAP,
     FILE_SIZE_UNITS,
@@ -38,7 +38,7 @@ export {
 } from './constants.js';
 
 // ========== 事件匯流排模組 ==========
-export { 
+export {
     emit,
     on,
     once,
@@ -46,17 +46,11 @@ export {
     emitAuthSuccess,
     emitAuthLogout,
     emitFilesSelected,
-    emitFolderChanged,
-    emitFolderCreated,
-    emitFolderDeleted,
-    emitFileUploaded,
-    emitFileDeleted,
-    emitFileListUpdated,
-    emitFolderListUpdated
+    emitFolderSelected
 } from './event-bus.js';
 
 // ========== 日誌模組 ==========
-export { 
+export {
     LOG_LEVELS,
     setLogLevel,
     debug,
@@ -78,6 +72,6 @@ export function initCore(options = {}) {
             setLogLevel(options.logLevel);
         });
     }
-    
+
     // 可在此處添加其他核心層初始化邏輯
 }
