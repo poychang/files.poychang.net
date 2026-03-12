@@ -16,9 +16,12 @@ import {
     initModal,
     showDeleteFolderModal,
     hideDeleteFolderModal,
+    showDeleteFileModal,
+    hideDeleteFileModal,
     showUploadConfirmModal,
     hideUploadConfirmModal,
     getDeleteFolderModalInstance,
+    getDeleteFileModalInstance,
     getUploadConfirmModalInstance
 } from './modal.js';
 import {
@@ -138,9 +141,12 @@ export {
 export { 
     showDeleteFolderModal,
     hideDeleteFolderModal,
+    showDeleteFileModal,
+    hideDeleteFileModal,
     showUploadConfirmModal,
     hideUploadConfirmModal,
     getDeleteFolderModalInstance,
+    getDeleteFileModalInstance,
     getUploadConfirmModalInstance
 };
 

@@ -11,7 +11,8 @@ import {
 } from '../repo/index.js';
 import { DOM_IDS, CUSTOM_EVENTS } from '../core/index.js';
 import { showSuccess, showError } from './toast.js';
-import { showLoading, showButtonLoading, hideButtonLoading } from './loading.js';
+import { showLoading } from './loading.js';
+import { showDeleteFileModal } from './modal.js';
 import { buildCopyLinkMessage } from './platform-notice.js';
 
 // DOM 元素
@@ -92,8 +93,8 @@ export function displayFileList(files) {
 
     // 綁定刪除按鈕事件
     fileListContainer.querySelectorAll('.btn-delete-file').forEach((btn) => {
-        btn.addEventListener('click', (e) => {
-            confirmDeleteFile(btn.dataset.filename, btn.dataset.sha, e.currentTarget);
+        btn.addEventListener('click', () => {
+            confirmDeleteFile(btn.dataset.filename, btn.dataset.sha);
         });
     });
 }
@@ -173,26 +174,20 @@ async function copyFileLink(url, filename) {
  * 確認刪除檔案
  * @param {string} filename - 檔案名稱
  * @param {string} sha - 檔案 SHA
- * @param {HTMLElement} triggerBtn - 觸發按鈕
  */
-async function confirmDeleteFile(filename, sha, triggerBtn) {
-    if (!confirm(`確定要刪除檔案 "${filename}" 嗎？\n\n此操作無法復原。`)) {
-        return;
-    }
+async function confirmDeleteFile(filename, sha) {
+    showDeleteFileModal(filename, async () => {
+        try {
+            await deleteFile(filename, sha);
+            showSuccess(`✓ 已刪除檔案：${filename}`);
 
-    try {
-        // 顯示載入狀態
-        showButtonLoading(triggerBtn, '刪除中...');
-
-        await deleteFile(filename, sha);
-        showSuccess(`✓ 已刪除檔案：${filename}`);
-
-        // 重新載入檔案列表
-        await refreshFileList();
-    } catch (error) {
-        showError(error.message);
-        hideButtonLoading(triggerBtn);
-    }
+            // 重新載入檔案列表
+            await refreshFileList();
+        } catch (error) {
+            showError(error.message);
+            throw error;
+        }
+    });
 }
 
 /**

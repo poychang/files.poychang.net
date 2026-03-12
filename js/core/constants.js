@@ -150,6 +150,11 @@ export const DOM_IDS = {
     DELETE_FOLDER_MODAL: 'deleteFolderModal',
     FOLDER_TO_DELETE_NAME: 'folder-to-delete-name',
     CONFIRM_DELETE_FOLDER_BTN: 'confirm-delete-folder-btn',
+
+    // Modal - 刪除檔案
+    DELETE_FILE_MODAL: 'deleteFileModal',
+    FILE_TO_DELETE_NAME: 'file-to-delete-name',
+    CONFIRM_DELETE_FILE_BTN: 'confirm-delete-file-btn',
     
     // Progress
     UPLOAD_PROGRESS: 'upload-progress',

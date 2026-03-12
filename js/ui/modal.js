@@ -4,13 +4,16 @@
  */
 
 import { DOM_IDS, PLATFORM_LIMITS } from '../core/index.js';
+import { showButtonLoading, hideButtonLoading } from './loading.js';
 
 // Modal 實例
 let deleteFolderModalInstance;
+let deleteFileModalInstance;
 let uploadConfirmModalInstance;
 
 // DOM 元素
 let deleteFolderModal, folderToDeleteName, confirmDeleteFolderBtn;
+let deleteFileModal, fileToDeleteName, confirmDeleteFileBtn;
 let uploadConfirmModal, uploadFileCount, uploadTargetPath, uploadConfirmNotice, confirmUploadBtn;
 
 /**
@@ -24,6 +27,15 @@ export function initModal() {
     
     if (deleteFolderModal) {
         deleteFolderModalInstance = new bootstrap.Modal(deleteFolderModal);
+    }
+
+    // 初始化刪除檔案 Modal
+    deleteFileModal = document.getElementById(DOM_IDS.DELETE_FILE_MODAL);
+    fileToDeleteName = document.getElementById(DOM_IDS.FILE_TO_DELETE_NAME);
+    confirmDeleteFileBtn = document.getElementById(DOM_IDS.CONFIRM_DELETE_FILE_BTN);
+
+    if (deleteFileModal) {
+        deleteFileModalInstance = new bootstrap.Modal(deleteFileModal);
     }
 
     // 初始化上傳確認 Modal
@@ -44,35 +56,14 @@ export function initModal() {
  * @param {Function} onConfirm - 確認刪除的回調函數
  */
 export function showDeleteFolderModal(folderName, onConfirm) {
-    if (!deleteFolderModalInstance) return;
-
-    // 設定分類名稱
-    if (folderToDeleteName) {
-        folderToDeleteName.textContent = folderName;
-    }
-
-    // 綁定確認按鈕事件
-    if (confirmDeleteFolderBtn) {
-        // 移除舊的事件監聽器（避免重複綁定）
-        const newBtn = confirmDeleteFolderBtn.cloneNode(true);
-        confirmDeleteFolderBtn.parentNode.replaceChild(newBtn, confirmDeleteFolderBtn);
-        confirmDeleteFolderBtn = newBtn;
-
-        confirmDeleteFolderBtn.addEventListener('click', () => {
-            // 先隱藏 Modal
-            deleteFolderModalInstance.hide();
-            
-            // 等待 Modal 完全隱藏後再執行回調 (使用 once: true 確保只執行一次)
-            deleteFolderModal.addEventListener('hidden.bs.modal', async () => {
-                if (onConfirm) {
-                    await onConfirm();
-                }
-            }, { once: true });
-        });
-    }
-
-    // 顯示 Modal
-    deleteFolderModalInstance.show();
+    showDangerActionModal({
+        modalElement: deleteFolderModal,
+        modalInstance: deleteFolderModalInstance,
+        nameElement: folderToDeleteName,
+        actionName: folderName,
+        confirmButton: confirmDeleteFolderBtn,
+        onConfirm,
+    });
 }
 
 /**
@@ -81,6 +72,32 @@ export function showDeleteFolderModal(folderName, onConfirm) {
 export function hideDeleteFolderModal() {
     if (deleteFolderModalInstance) {
         deleteFolderModalInstance.hide();
+    }
+}
+
+/**
+ * 顯示刪除檔案確認對話框
+ * @param {string} fileName - 要刪除的檔案名稱
+ * @param {Function} onConfirm - 確認刪除的回調函數
+ */
+export function showDeleteFileModal(fileName, onConfirm) {
+    showDangerActionModal({
+        modalElement: deleteFileModal,
+        modalInstance: deleteFileModalInstance,
+        nameElement: fileToDeleteName,
+        actionName: fileName,
+        confirmButton: confirmDeleteFileBtn,
+        onConfirm,
+        loadingText: '刪除中...',
+    });
+}
+
+/**
+ * 隱藏刪除檔案對話框
+ */
+export function hideDeleteFileModal() {
+    if (deleteFileModalInstance) {
+        deleteFileModalInstance.hide();
     }
 }
 
@@ -191,9 +208,66 @@ export function getDeleteFolderModalInstance() {
 }
 
 /**
+ * 取得刪除檔案 Modal 實例
+ * @returns {bootstrap.Modal} Modal 實例
+ */
+export function getDeleteFileModalInstance() {
+    return deleteFileModalInstance;
+}
+
+/**
  * 取得上傳確認 Modal 實例
  * @returns {bootstrap.Modal} Modal 實例
  */
 export function getUploadConfirmModalInstance() {
     return uploadConfirmModalInstance;
+}
+
+function showDangerActionModal({
+    modalElement,
+    modalInstance,
+    nameElement,
+    actionName,
+    confirmButton,
+    onConfirm,
+    loadingText = '處理中...',
+}) {
+    if (!modalElement || !modalInstance || !confirmButton) return;
+
+    if (nameElement) {
+        nameElement.textContent = actionName;
+    }
+
+    const newButton = confirmButton.cloneNode(true);
+    confirmButton.parentNode.replaceChild(newButton, confirmButton);
+
+    if (confirmButton === confirmDeleteFolderBtn) {
+        confirmDeleteFolderBtn = newButton;
+    } else if (confirmButton === confirmDeleteFileBtn) {
+        confirmDeleteFileBtn = newButton;
+    }
+
+    newButton.addEventListener('click', async () => {
+        showButtonLoading(newButton, loadingText);
+
+        try {
+            if (onConfirm) {
+                await onConfirm();
+            }
+
+            modalInstance.hide();
+        } catch (error) {
+            hideButtonLoading(newButton);
+        }
+    });
+
+    modalElement.addEventListener(
+        'hidden.bs.modal',
+        () => {
+            hideButtonLoading(newButton);
+        },
+        { once: true },
+    );
+
+    modalInstance.show();
 }

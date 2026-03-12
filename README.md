@@ -138,7 +138,7 @@ export const CONFIG = {
 - GitHub Pages 與 CDN 快取更新通常需要數十秒，偶爾可能更久；剛上傳或覆蓋後不一定會立即對外可見
 - 建立或刪除分類後，介面會以短輪詢等待 GitHub API 狀態一致；若同步逾時，會提示使用者稍後再確認
 - 檔案列表會略過 `.gitkeep`
-- 刪除分類使用 Bootstrap Modal 確認；刪除單一檔案目前仍使用瀏覽器原生 `confirm()`
+- 刪除分類與刪除單一檔案都使用 Bootstrap Modal 確認，並支援非同步處理中的 loading 狀態
 
 ## 常見 GitHub API 錯誤對照
 
