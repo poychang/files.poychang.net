@@ -15,9 +15,19 @@
 
 ### 1. 建立 GitHub Personal Access Token
 
-1. 前往 [GitHub Token 設定頁面](https://github.com/settings/tokens/new)
-2. 建立一組可存取目標 repository 的 token
-3. 至少勾選 `repo` 權限
+建議優先使用 fine-grained PAT，並把權限縮到單一 repository。
+
+1. 前往 [GitHub fine-grained token 設定頁面](https://github.com/settings/personal-access-tokens/new)
+2. Token name 可設為 `files.poychang.net`，Expiration 建議使用較短期限
+3. 在 `Repository access` 選擇 `Only select repositories`，只勾選要管理檔案的那一個 repository
+4. 在 `Repository permissions` 將 `Contents` 設為 `Read and write`
+5. 產生 token 後立即複製，並僅將它用於這個檔案管理站
+
+若因 organisation 政策或舊工具限制，必須改用 classic PAT：
+
+- 優先只在必要時使用 classic PAT，不要當成預設方案
+- 若目標是 public repository，可先評估 `public_repo` 是否已足夠
+- 若要操作 private repository，classic PAT 通常需要較大的 `repo` scope，風險明顯高於 fine-grained PAT
 
 ### 2. 設定專案
 
@@ -46,9 +56,10 @@ const CONFIG = {
 
 1. 開啟網站並以 Personal Access Token 登入
 2. 預設只在本次瀏覽器工作階段使用 Token；只有在私人裝置上才建議勾選「記住我」
-3. 建立或選取分類
-4. 上傳檔案
-5. 在檔案列表中複製連結或刪除檔案
+3. 建議使用只授權單一 repository 的專用 Token，不與其他用途共用
+4. 建立或選取分類
+5. 上傳檔案
+6. 在檔案列表中複製連結或刪除檔案
 
 ## 專案結構
 
@@ -127,6 +138,23 @@ files.poychang.net/
 - 只有在使用者勾選「記住我」時，才會把 Token 寫入 `localStorage`
 - 登出或 Token 驗證失敗時，系統會清除 `sessionStorage` 與 `localStorage` 內殘留的憑證資料
 - 若裝置可能被他人共用，請不要啟用「記住我」
+- 建議建立專用 fine-grained PAT，將權限限制在單一 repository，避免共用既有開發或維運 Token
+
+## GitHub Token 最小權限
+
+本專案目前實際使用的 GitHub API 主要是：
+
+- `GET /user`：驗證 Token 是否有效，取得登入使用者資訊
+- `GET /repos/{owner}/{repo}/contents/{path}`：列出資料夾與讀取檔案資訊
+- `PUT /repos/{owner}/{repo}/contents/{path}`：建立資料夾用的 `.gitkeep`、上傳檔案、覆蓋既有檔案
+- `DELETE /repos/{owner}/{repo}/contents/{path}`：刪除檔案或分類中的 `.gitkeep` / 檔案
+
+對應的最小權限建議如下：
+
+- fine-grained PAT：`Repository access` 限定單一 repository，`Contents` 設為 `Read and write`
+- classic PAT：僅在無法使用 fine-grained PAT 時才考慮；private repository 常需 `repo` scope，風險較高
+
+如果 Token 缺少寫入權限，登入可能成功，但上傳、建立分類、刪除檔案時會收到 GitHub 403。介面現在會明確提示你檢查 `Contents: Read and write`。
 
 ## 技術現況
 

@@ -12,6 +12,7 @@ import {
     emitAuthLogout,
     createLogger
 } from './core/index.js';
+import { translateGitHubError } from './repo/github-api.js';
 
 const logger = createLogger('Auth');
 
@@ -142,7 +143,8 @@ async function loginWithToken() {
         clearToken();
         octokit = null;
         if (onAuthFail) {
-            onAuthFail(`${ERROR_MESSAGES.INVALID_TOKEN}。請確認 Token 是否正確。`);
+            const translatedError = translateGitHubError(error, '登入 GitHub');
+            onAuthFail(`${ERROR_MESSAGES.INVALID_TOKEN}。${translatedError.message}`);
         }
     } finally {
         tokenLoginBtn.disabled = false;
@@ -170,7 +172,7 @@ async function getUserInfo() {
         const { data: user } = await octokit.request('GET /user');
         return user;
     } catch (error) {
-        throw new Error('無法取得使用者資訊：' + error.message);
+        throw translateGitHubError(error, '取得 GitHub 使用者資訊');
     }
 }
 
@@ -271,7 +273,7 @@ function updateStoragePreferenceHint() {
 
     tokenStorageHelp.textContent = getSelectedStorageMode() === TOKEN_STORAGE_MODES.LOCAL
         ? '已選擇記住我：Token 會保存於 localStorage，重新開啟瀏覽器後仍可能自動登入。'
-        : '預設僅在本次瀏覽器工作階段保存 Token；關閉分頁或瀏覽器後需重新登入。';
+        : '預設僅在本次瀏覽器工作階段保存 Token；關閉分頁或瀏覽器後需重新登入。建議使用只授權單一 repository 的專用 Token。';
 }
 
 function loadPreferredStorageMode() {

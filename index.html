@@ -87,12 +87,13 @@
                             <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>如何取得 Personal Access Token：
                             </h6>
                             <ol class="mb-0 small">
-                                <li>前往 <a href="https://github.com/settings/tokens/new" target="_blank"
-                                        class="alert-link">GitHub Token 設定頁面</a></li>
-                                <li>設定 Token 名稱（例如：File Hosting）</li>
-                                <li>選擇 Expiration（建議選擇較短的期限）</li>
-                                <li>勾選 <code>repo</code> 權限（完整存取權限）</li>
-                                <li>點擊「Generate token」並複製產生的 token</li>
+                                <li>前往 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank"
+                                        class="alert-link">GitHub fine-grained token 設定頁面</a></li>
+                                <li>優先建立 fine-grained PAT，Token 名稱可設為 <code>files.poychang.net</code></li>
+                                <li>Repository access 請限制為目標單一 repository，並設定較短的 Expiration</li>
+                                <li>Repository permissions 至少開啟 <code>Contents: Read and write</code></li>
+                                <li>只有在 organisation 政策或舊工具限制下，才改用 classic PAT；若要操作私人 repository，classic PAT 才需要較大的 <code>repo</code> scope</li>
+                                <li>點擊「Generate token」並複製產生的 token，不要與其他用途共用</li>
                             </ol>
                         </div>
                         <div class="input-group">
@@ -114,6 +115,7 @@
                         <div class="alert alert-warning mt-3 mb-0 small">
                             <h6 class="alert-heading mb-2"><i class="bi bi-shield-exclamation me-2"></i>安全提醒</h6>
                             <p class="mb-2">這是純前端 PAT 登入流程，不是 GitHub OAuth。只要 Token 留在瀏覽器內，就可能被裝置共用者或 XSS 風險利用。</p>
+                            <p class="mb-2">請使用只授權此 repository 的專用 Token，避免把其他 private repositories 的權限一起交給瀏覽器。</p>
                             <p class="mb-0">若不是私人裝置，請保持預設設定，不要勾選「記住我」。</p>
                         </div>
                     </div>
