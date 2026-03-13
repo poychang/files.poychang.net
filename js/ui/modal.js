@@ -288,7 +288,7 @@ function showDangerActionModal({
             }
 
             modalInstance.hide();
-        } catch (error) {
+        } catch {
             hideButtonLoading(newButton);
         }
     });

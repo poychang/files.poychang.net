@@ -1,8 +1,16 @@
 {
-  "name": "files-poychang-net",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "test": "node --test"
-  }
+    "name": "files-poychang-net",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "test": "node --test",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write \"package*.json\" \".prettierrc.json\" \"eslint.config.js\" \"README.md\" \"tests/**/*.js\"",
+        "format:check": "prettier --check \"package*.json\" \".prettierrc.json\" \"eslint.config.js\" \"README.md\" \"tests/**/*.js\""
+    },
+    "devDependencies": {
+        "eslint": "^9.22.0",
+        "prettier": "^3.5.3"
+    }
 }

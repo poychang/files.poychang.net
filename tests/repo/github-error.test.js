@@ -35,16 +35,19 @@ test('translateGitHubError wraps plain runtime errors with context', () => {
 });
 
 test('translateGitHubError translates 403 rate limit responses', () => {
-    const translated = translateGitHubError({
-        status: 403,
-        message: 'API rate limit exceeded',
-        response: {
-            headers: {
-                'x-ratelimit-remaining': '0',
-                'x-ratelimit-reset': '1760000000',
+    const translated = translateGitHubError(
+        {
+            status: 403,
+            message: 'API rate limit exceeded',
+            response: {
+                headers: {
+                    'x-ratelimit-remaining': '0',
+                    'x-ratelimit-reset': '1760000000',
+                },
             },
         },
-    }, '載入分類');
+        '載入分類'
+    );
 
     assert.equal(translated.code, GITHUB_ERROR_CODES.RATE_LIMITED);
     assert.match(translated.userMessage, /GitHub API 已達速率限制/);
@@ -52,15 +55,18 @@ test('translateGitHubError translates 403 rate limit responses', () => {
 });
 
 test('translateGitHubError includes accepted permissions on forbidden responses', () => {
-    const translated = translateGitHubError({
-        status: 403,
-        message: 'Resource not accessible by personal access token',
-        response: {
-            headers: {
-                'x-accepted-github-permissions': 'contents=write',
+    const translated = translateGitHubError(
+        {
+            status: 403,
+            message: 'Resource not accessible by personal access token',
+            response: {
+                headers: {
+                    'x-accepted-github-permissions': 'contents=write',
+                },
             },
         },
-    }, '建立分類');
+        '建立分類'
+    );
 
     assert.equal(translated.code, GITHUB_ERROR_CODES.FORBIDDEN);
     assert.match(translated.userMessage, /contents=write/);
@@ -70,11 +76,14 @@ test('translateGitHubError maps standard GitHub API statuses', () => {
     const notFound = translateGitHubError({ status: 404, message: 'Not Found' }, '讀取檔案');
     const conflict = translateGitHubError({ status: 409, message: 'Conflict' }, '刪除檔案');
     const invalid = translateGitHubError({ status: 422, message: 'Validation Failed' }, '建立分類');
-    const unknown = translateGitHubError({
-        status: 500,
-        message: 'Server error',
-        response: { headers: { 'x-github-request-id': 'REQ123' } },
-    }, '同步資料');
+    const unknown = translateGitHubError(
+        {
+            status: 500,
+            message: 'Server error',
+            response: { headers: { 'x-github-request-id': 'REQ123' } },
+        },
+        '同步資料'
+    );
 
     assert.equal(notFound.code, GITHUB_ERROR_CODES.NOT_FOUND);
     assert.equal(conflict.code, GITHUB_ERROR_CODES.CONFLICT);
@@ -85,7 +94,10 @@ test('translateGitHubError maps standard GitHub API statuses', () => {
 });
 
 test('getGitHubErrorDetails normalizes translated error fields', () => {
-    const translated = translateGitHubError({ status: 401, message: 'Bad credentials' }, '登入 GitHub');
+    const translated = translateGitHubError(
+        { status: 401, message: 'Bad credentials' },
+        '登入 GitHub'
+    );
     const details = getGitHubErrorDetails(translated);
 
     assert.deepEqual(details, {

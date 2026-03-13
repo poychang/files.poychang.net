@@ -202,7 +202,7 @@ export async function folderExists(folderName) {
     try {
         const folders = await listSubFolders();
         return folders.some(f => f.name.toLowerCase() === folderName.toLowerCase());
-    } catch (error) {
+    } catch {
         return false;
     }
 }
@@ -219,7 +219,7 @@ export async function getFolderFileCount(folderName) {
         
         // 排除 .gitkeep 檔案
         return contents.filter(item => item.type === 'file' && item.name !== '.gitkeep').length;
-    } catch (error) {
+    } catch {
         return 0;
     }
 }

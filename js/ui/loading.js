@@ -3,8 +3,6 @@
  * 處理各種載入指示器的顯示與隱藏
  */
 
-import { DOM_IDS } from '../core/index.js';
-
 function escapeHtml(value = '') {
     return String(value)
         .replaceAll('&', '&amp;')

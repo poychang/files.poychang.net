@@ -164,7 +164,7 @@ async function copyFileLink(url, filename) {
     try {
         await navigator.clipboard.writeText(url);
         showSuccess(buildCopyLinkMessage(filename));
-    } catch (error) {
+    } catch {
         // 降級方案：使用 textarea
         const textarea = document.createElement('textarea');
         textarea.value = url;
@@ -176,7 +176,7 @@ async function copyFileLink(url, filename) {
         try {
             document.execCommand('copy');
             showSuccess(buildCopyLinkMessage(filename));
-        } catch (err) {
+        } catch {
             showError('複製失敗，請手動複製');
         }
 

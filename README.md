@@ -44,11 +44,11 @@ export const CONFIG = {
     defaultRepo: {
         owner: 'poychang',
         repo: 'files.poychang.net',
-        branch: 'main'
+        branch: 'main',
     },
     fileBasePath: 'storage',
     defaultSubFolder: 'default',
-    githubPagesBaseUrl: 'https://files.poychang.net'
+    githubPagesBaseUrl: 'https://files.poychang.net',
 };
 ```
 
@@ -69,6 +69,31 @@ export const CONFIG = {
 ```bash
 npm test
 ```
+
+### 3.2 執行 lint / format 檢查
+
+專案提供最小可持續維護的靜態檢查流程，優先攔截 correctness 與 dead code 類問題，並用 Prettier 維持一致格式。
+
+```bash
+npm run lint
+npm run format:check
+```
+
+常用指令：
+
+- `npm run lint:fix`：自動修正可安全處理的 lint 問題
+- `npm run format`：直接套用 Prettier 格式
+
+目前 formatter 先覆蓋設定檔、README 與自動化測試檔，避免一次重排整個既有前端碼庫，造成大範圍歷史 diff；等後續有獨立整理時，再把範圍擴大到全部前端原始碼。
+
+目前 ESLint 規則刻意保持精簡，主要聚焦：
+
+- 未宣告變數
+- 未使用變數
+- 重複 import
+- 無法到達的程式碼
+
+這樣可以先建立品質門檻，不會因一次導入過多風格規則而產生大量低訊號噪音。
 
 目前測試涵蓋：
 
@@ -146,6 +171,8 @@ npm test
 - UI：Bootstrap 5、Bootstrap Icons
 - API Client：`@octokit/core`（由 `esm.sh` 載入）
 - 測試：Node.js 內建測試器（`node --test`）
+- 靜態檢查：ESLint 9（flat config）
+- 格式化：Prettier 3
 - 託管：GitHub Pages
 - 認證：GitHub Personal Access Token
 - 事件策略：只有真正跨模組且不適合 callback 注入的流程才使用 `CUSTOM_EVENTS` 與 `event-bus`
@@ -164,14 +191,14 @@ npm test
 
 ## 常見 GitHub API 錯誤對照
 
-| 情境 | HTTP 狀態 | UI 顯示訊息方向 | 維護與除錯重點 |
-| --- | --- | --- | --- |
-| Token 無效、過期、尚未完成授權 | 401 | GitHub 驗證失敗，Token 可能無效、已過期，或尚未完成必要授權。 | 重新產生 PAT，確認 repository scope 與有效期限。 |
-| Token 沒有足夠權限 | 403 | 某操作被 GitHub 拒絕，並提示 GitHub 接受的權限或 `Contents: Read and write`。 | 檢查 fine-grained PAT 是否限定正確 repository，且 `Contents` 為 `Read and write`。 |
-| API 速率限制 | 403 | GitHub API 已達速率限制，請稍後再試。 | 查看 logger 的 `code/status/debugMessage`，確認是否為 rate limit，而非一般權限問題。 |
-| 路徑或 repository 不存在，或無法讀取該資源 | 404 | 找不到指定的 repository 或路徑，或目前 Token 無法讀取該資源。 | 檢查 `js/core/config.js` 的 owner / repo / branch / path，並確認 PAT 有讀取權限。 |
-| 內容衝突，例如版本不同步 | 409 | GitHub 偵測到內容衝突，請重新整理後再試。 | 重新整理列表後重試，必要時比對最新 SHA。 |
-| 路徑、檔名或請求內容無效 | 422 | 請求內容無效，請確認路徑、檔名與內容格式。 | 檢查分類名稱、檔名、Base64 內容與 GitHub Contents API 限制。 |
+| 情境                                       | HTTP 狀態 | UI 顯示訊息方向                                                               | 維護與除錯重點                                                                       |
+| ------------------------------------------ | --------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Token 無效、過期、尚未完成授權             | 401       | GitHub 驗證失敗，Token 可能無效、已過期，或尚未完成必要授權。                 | 重新產生 PAT，確認 repository scope 與有效期限。                                     |
+| Token 沒有足夠權限                         | 403       | 某操作被 GitHub 拒絕，並提示 GitHub 接受的權限或 `Contents: Read and write`。 | 檢查 fine-grained PAT 是否限定正確 repository，且 `Contents` 為 `Read and write`。   |
+| API 速率限制                               | 403       | GitHub API 已達速率限制，請稍後再試。                                         | 查看 logger 的 `code/status/debugMessage`，確認是否為 rate limit，而非一般權限問題。 |
+| 路徑或 repository 不存在，或無法讀取該資源 | 404       | 找不到指定的 repository 或路徑，或目前 Token 無法讀取該資源。                 | 檢查 `js/core/config.js` 的 owner / repo / branch / path，並確認 PAT 有讀取權限。    |
+| 內容衝突，例如版本不同步                   | 409       | GitHub 偵測到內容衝突，請重新整理後再試。                                     | 重新整理列表後重試，必要時比對最新 SHA。                                             |
+| 路徑、檔名或請求內容無效                   | 422       | 請求內容無效，請確認路徑、檔名與內容格式。                                    | 檢查分類名稱、檔名、Base64 內容與 GitHub Contents API 限制。                         |
 
 目前 repo / auth 層會統一拋出帶有 `code`、`status`、`userMessage`、`debugMessage` 的錯誤物件。UI 預設顯示 `userMessage`，logger 則保留技術細節，方便後續追查。
 

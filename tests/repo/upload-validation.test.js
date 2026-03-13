@@ -14,10 +14,7 @@ function createFile(name, size) {
 }
 
 test('validateUploadSelection accepts valid files and keeps warnings empty', () => {
-    const files = [
-        createFile('photo.png', 1024),
-        createFile('notes.md', 512),
-    ];
+    const files = [createFile('photo.png', 1024), createFile('notes.md', 512)];
 
     const result = validateUploadSelection(files);
 
@@ -78,9 +75,7 @@ test('buildUploadPreflightSummary merges overwrite warnings into the selection r
 });
 
 test('buildUploadSelectionFeedback reflects blocking outcomes', () => {
-    const allBlocked = validateUploadSelection([
-        createFile('virus.exe', 10),
-    ]);
+    const allBlocked = validateUploadSelection([createFile('virus.exe', 10)]);
     const partial = validateUploadSelection([
         createFile('notes.md', 20),
         createFile('virus.exe', 10),
@@ -88,7 +83,10 @@ test('buildUploadSelectionFeedback reflects blocking outcomes', () => {
 
     assert.match(buildUploadSelectionFeedback(allBlocked), /未送出任何上傳請求/);
     assert.match(buildUploadSelectionFeedback(partial), /其餘 1 個檔案可繼續上傳/);
-    assert.equal(buildUploadSelectionFeedback(validateUploadSelection([createFile('ok.txt', 10)])), null);
+    assert.equal(
+        buildUploadSelectionFeedback(validateUploadSelection([createFile('ok.txt', 10)])),
+        null
+    );
 });
 
 test('getSupportedUploadExtensions returns a sorted extension whitelist', () => {
