@@ -47,14 +47,19 @@ export function initPlatformNotice() {
     setMarkup(
         DOM_IDS.PLATFORM_BOUNDARY_NOTICE,
         `
-            <div class="d-flex align-items-start gap-3">
-                <i class="bi bi-exclamation-diamond-fill fs-4"></i>
-                <div>
-                    <h5 class="alert-heading mb-2">使用限制與服務邊界</h5>
+            <details class="platform-notice-collapse">
+                <summary class="platform-notice-summary">
+                    <span class="platform-notice-summary-main">
+                        <i class="bi bi-exclamation-diamond-fill fs-4" aria-hidden="true"></i>
+                        <span class="platform-notice-title">使用限制與服務邊界</span>
+                    </span>
+                    <i class="bi bi-chevron-down platform-notice-chevron" aria-hidden="true"></i>
+                </summary>
+                <div class="platform-notice-content">
                     <p class="mb-2">這個站點是 GitHub 靜態檔案託管管理介面，不是一般雲端儲存服務。</p>
                     ${renderList(AUTHENTICATED_NOTICE_ITEMS)}
                 </div>
-            </div>
+            </details>
         `
     );
 
