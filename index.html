@@ -83,23 +83,10 @@
                     </div>
 
                     <div id="token-input-section" class="d-none mt-4">
-                        <div class="alert alert-info">
-                            <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>如何取得 Personal Access Token：
-                            </h6>
-                            <ol class="mb-0 small">
-                                <li>前往 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank"
-                                        class="alert-link">GitHub fine-grained token 設定頁面</a></li>
-                                <li>優先建立 fine-grained PAT，Token 名稱可設為 <code>files.poychang.net</code></li>
-                                <li>Repository access 請限制為目標單一 repository，並設定較短的 Expiration</li>
-                                <li>Repository permissions 至少開啟 <code>Contents: Read and write</code></li>
-                                <li>只有在 organisation 政策或舊工具限制下，才改用 classic PAT；若要操作私人 repository，classic PAT 才需要較大的 <code>repo</code> scope</li>
-                                <li>點擊「Generate token」並複製產生的 token，不要與其他用途共用</li>
-                            </ol>
-                        </div>
                         <div class="input-group">
                             <input type="password" id="token-input" class="form-control form-control-lg"
                                 placeholder="貼上你的 GitHub Personal Access Token">
-                            <button id="token-login-btn" class="btn btn-success btn-lg">
+                                <button id="token-login-btn" class="btn btn-success btn-lg">
                                 <i class="bi bi-box-arrow-in-right me-2"></i>登入
                             </button>
                         </div>
@@ -111,6 +98,19 @@
                         </div>
                         <div id="token-storage-help" class="form-text">
                             預設僅在本次瀏覽器工作階段保存 Token；關閉分頁或瀏覽器後需重新登入。
+                        </div>
+                        <div class="alert alert-info mt-3">
+                            <h6 class="alert-heading"><i class="bi bi-info-circle me-2"></i>如何取得 Personal Access Token：
+                            </h6>
+                            <ol class="mb-0 small">
+                                <li>前往 <a href="https://github.com/settings/personal-access-tokens/new" target="_blank"
+                                        class="alert-link">GitHub fine-grained token 設定頁面</a></li>
+                                <li>優先建立 fine-grained PAT，Token 名稱可設為 <code>files.poychang.net</code></li>
+                                <li>Repository access 請限制為目標單一 repository，並設定較短的 Expiration</li>
+                                <li>Repository permissions 至少開啟 <code>Contents: Read and write</code></li>
+                                <li>只有在 organisation 政策或舊工具限制下，才改用 classic PAT；若要操作私人 repository，classic PAT 才需要較大的 <code>repo</code> scope</li>
+                                <li>點擊「Generate token」並複製產生的 token，不要與其他用途共用</li>
+                            </ol>
                         </div>
                         <div class="alert alert-warning mt-3 mb-0 small">
                             <h6 class="alert-heading mb-2"><i class="bi bi-shield-exclamation me-2"></i>安全提醒</h6>
