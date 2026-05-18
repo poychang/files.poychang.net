@@ -109,20 +109,17 @@ function handleDrop(e) {
  * 允許使用者直接在上傳區可見時按 Ctrl+V 貼上檔案或截圖
  */
 function setupClipboardPaste() {
-    document.addEventListener('paste', handlePaste);
+    // 使用 capture 提高命中率，避免被子元素 stopPropagation 阻擋
+    document.addEventListener('paste', handlePaste, true);
 }
 
 /**
- * 判斷目前焦點是否在可輸入文字的元素
- * 若是，則略過貼上檔案以免干擾使用者輸入
+ * 判斷上傳區是否可見
  * @returns {boolean}
  */
-function isEditableTarget(target) {
-    if (!target) return false;
-    const tag = target.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
-    if (target.isContentEditable) return true;
-    return false;
+function isUploadAreaVisible() {
+    if (!dropZone || !dropZone.isConnected) return false;
+    return dropZone.getClientRects().length > 0;
 }
 
 /**
@@ -131,10 +128,7 @@ function isEditableTarget(target) {
  */
 function handlePaste(e) {
     // 若上傳區不在畫面上（例如使用者在其他分頁/檢視），則不處理
-    if (!dropZone || !dropZone.offsetParent) return;
-
-    // 若使用者正在輸入欄位中，避免攔截一般文字貼上
-    if (isEditableTarget(e.target)) return;
+    if (!isUploadAreaVisible()) return;
 
     const clipboardData = e.clipboardData;
     if (!clipboardData) return;
@@ -165,7 +159,7 @@ function extractFilesFromClipboard(clipboardData) {
 
     if (clipboardData.files && clipboardData.files.length > 0) {
         for (const file of clipboardData.files) {
-            pushFile(file);
+            pushFile(ensureFileName(file));
         }
     }
 
