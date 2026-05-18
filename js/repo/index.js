@@ -22,6 +22,7 @@ import {
     setCurrentSubFolder,
     listFiles,
     deleteFile,
+    renameFile,
     prepareUploadBatch,
     uploadFiles,
     resetCurrentFolder,
@@ -87,6 +88,7 @@ export {
     setCurrentSubFolder,
     listFiles,
     deleteFile,
+    renameFile,
     prepareUploadBatch,
     uploadFiles,
 };

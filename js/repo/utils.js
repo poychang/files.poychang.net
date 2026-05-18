@@ -97,3 +97,60 @@ export function getFileExtension(filename) {
 export function getSupportedExtensions() {
     return { ...FILE_EXTENSIONS };
 }
+
+/**
+ * 取得所有支援的副檔名（扁平、小寫）
+ * @returns {Set<string>} 副檔名集合
+ */
+export function getSupportedExtensionSet() {
+    return new Set(
+        Object.values(FILE_EXTENSIONS)
+            .flat()
+            .map((extension) => extension.toLowerCase())
+    );
+}
+
+/**
+ * 驗證重新命名的目標檔名
+ * 回傳清理後的新檔名，或拋出帶 userMessage 的錯誤
+ * @param {string} newName - 使用者輸入的新檔名
+ * @param {string} oldName - 原始檔名
+ * @returns {string} 通過驗證的新檔名
+ */
+export function validateRenameFilename(newName, oldName) {
+    const trimmed = (newName ?? '').toString().trim();
+
+    const fail = (message) => {
+        const error = new Error(message);
+        error.userMessage = message;
+        throw error;
+    };
+
+    if (!trimmed) {
+        fail('請輸入新的檔案名稱');
+    }
+
+    if (oldName && trimmed === oldName) {
+        fail('新檔名與原檔名相同，無需重新命名');
+    }
+
+    if (trimmed === '.' || trimmed === '..' || /[\\/]/.test(trimmed)) {
+        fail('檔名不可包含路徑分隔符號或保留字');
+    }
+
+    if (!isValidFilename(trimmed) || trimmed !== trimmed.trim()) {
+        fail('檔名格式不合法，請避免特殊字元與前後空白');
+    }
+
+    if (!trimmed.includes('.')) {
+        fail('檔名必須包含副檔名');
+    }
+
+    const extension = getFileExtension(trimmed);
+    const supported = getSupportedExtensionSet();
+    if (!supported.has(extension)) {
+        fail(`副檔名「.${extension}」不在允許清單內`);
+    }
+
+    return trimmed;
+}

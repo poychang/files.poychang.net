@@ -146,6 +146,14 @@ export const DOM_IDS = {
     DELETE_FILE_MODAL: 'deleteFileModal',
     FILE_TO_DELETE_NAME: 'file-to-delete-name',
     CONFIRM_DELETE_FILE_BTN: 'confirm-delete-file-btn',
+
+    // Modal - 重新命名檔案
+    RENAME_FILE_MODAL: 'renameFileModal',
+    RENAME_FILE_CURRENT_NAME: 'rename-file-current-name',
+    RENAME_FILE_INPUT: 'rename-file-input',
+    RENAME_FILE_ERROR: 'rename-file-error',
+    CONFIRM_RENAME_FILE_BTN: 'confirm-rename-file-btn',
+
     
     // Progress
     UPLOAD_PROGRESS: 'upload-progress',

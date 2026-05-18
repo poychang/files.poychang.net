@@ -355,6 +355,38 @@
         </div>
     </div>
 
+    <!-- 重新命名檔案 Modal -->
+    <div class="modal fade" id="renameFileModal" tabindex="-1" aria-labelledby="renameFileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title" id="renameFileModalLabel">
+                        <i class="bi bi-pencil-square text-primary me-2"></i>
+                        重新命名檔案
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">將檔案 <strong id="rename-file-current-name" class="text-primary"></strong> 重新命名為：</p>
+                    <div class="mb-2">
+                        <input type="text" class="form-control" id="rename-file-input" autocomplete="off" spellcheck="false" placeholder="輸入新的檔案名稱（含副檔名）">
+                    </div>
+                    <div id="rename-file-error" class="small text-danger d-none mb-2"></div>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        重新命名會建立新檔並刪除原檔，提交歷史會出現兩個 commit；CDN 快取生效前舊連結可能仍可短暫存取。
+                    </p>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirm-rename-file-btn">
+                        <i class="bi bi-check-circle me-1"></i>確認重新命名
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- 上傳檔案確認 Modal -->
     <div class="modal fade" id="uploadConfirmModal" tabindex="-1" aria-labelledby="uploadConfirmModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
