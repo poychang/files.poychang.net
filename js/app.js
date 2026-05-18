@@ -22,6 +22,7 @@ import {
     setCurrentSubFolder,
     listFiles,
     deleteFile,
+    renameFile,
 } from './repo/index.js';
 import {
     initUI,
@@ -99,6 +100,7 @@ function setupUiHandlers() {
     setFileHandlers({
         onRefresh: refreshFileList,
         onDelete: handleDeleteFile,
+        onRename: handleRenameFile,
     });
 
     setUploadHandlers({
@@ -335,6 +337,17 @@ async function handleDeleteFile(filename, sha) {
         void syncFileListAfterDeletion(filename);
     } catch (error) {
         showError(error.message);
+        throw error;
+    }
+}
+
+async function handleRenameFile(oldName, newName, sha) {
+    try {
+        const result = await renameFile(oldName, newName, sha);
+        showSuccess(`✓ 已重新命名：${oldName} → ${result.name}`);
+        await refreshFileList();
+    } catch (error) {
+        // 讓 Modal 顯示錯誤訊息並維持開啟
         throw error;
     }
 }

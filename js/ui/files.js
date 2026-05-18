@@ -6,13 +6,14 @@
 import { DOM_IDS } from '../core/index.js';
 import { showSuccess, showError } from './toast.js';
 import { showLoading, showEmptyState, showErrorState } from './loading.js';
-import { showDeleteFileModal } from './modal.js';
+import { showDeleteFileModal, showRenameFileModal } from './modal.js';
 import { buildCopyLinkMessage } from './platform-notice.js';
 
 // DOM 元素
 let fileListContainer, fileCountBadge, refreshFilesBtn;
 let onRefreshFiles = null;
 let onDeleteFile = null;
+let onRenameFile = null;
 
 /**
  * 初始化檔案管理
@@ -36,6 +37,7 @@ export function initFiles() {
 export function setFileHandlers(handlers = {}) {
     onRefreshFiles = handlers.onRefresh ?? onRefreshFiles;
     onDeleteFile = handlers.onDelete ?? onDeleteFile;
+    onRenameFile = handlers.onRename ?? onRenameFile;
 }
 
 /**
@@ -104,6 +106,13 @@ export function displayFileList(files) {
         });
     });
 
+    // 綁定重新命名按鈕事件
+    fileListContainer.querySelectorAll('.btn-rename-file').forEach((btn) => {
+        btn.addEventListener('click', () => {
+            requestRenameFile(btn.dataset.filename, btn.dataset.sha);
+        });
+    });
+
     // 綁定刪除按鈕事件
     fileListContainer.querySelectorAll('.btn-delete-file').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -142,6 +151,12 @@ function createFileItem(file) {
                             data-filename="${file.name}"
                             title="複製連結">
                         <i class="bi bi-clipboard me-1"></i>複製連結
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary btn-rename-file"
+                            data-filename="${file.name}"
+                            data-sha="${file.sha}"
+                            title="重新命名">
+                        <i class="bi bi-pencil-square me-1"></i>重新命名
                     </button>
                     <button class="btn btn-sm btn-outline-danger btn-delete-file" 
                             data-filename="${file.name}" 
@@ -192,6 +207,17 @@ async function copyFileLink(url, filename) {
 async function confirmDeleteFile(filename, sha) {
     showDeleteFileModal(filename, async () => {
         await onDeleteFile?.(filename, sha);
+    });
+}
+
+/**
+ * 請求重新命名檔案
+ * @param {string} filename - 目前檔案名稱
+ * @param {string} sha - 檔案 SHA
+ */
+function requestRenameFile(filename, sha) {
+    showRenameFileModal(filename, async (newName) => {
+        await onRenameFile?.(filename, newName, sha);
     });
 }
 

@@ -12,7 +12,7 @@ import {
     getGitHubErrorDetails,
     isGitHubErrorStatus,
 } from './github-api.js';
-import { fileToBase64, getFileType } from './utils.js';
+import { fileToBase64, getFileType, validateRenameFilename } from './utils.js';
 import { buildUploadPreflightSummary, validateUploadSelection } from './upload-validation.js';
 import { API_ERROR_CODES, CONFIG, ERROR_MESSAGES, createLogger } from '../core/index.js';
 
@@ -229,6 +229,89 @@ export async function deleteFile(filename, sha) {
     } catch (error) {
         throw translateGitHubError(error, `刪除檔案「${filename}」`);
     }
+}
+
+/**
+ * 重新命名檔案
+ * 透過 Contents API 以「建立新檔 + 刪除舊檔」兩步完成
+ * @param {string} oldName - 原始檔案名稱
+ * @param {string} newName - 新檔案名稱
+ * @param {string} oldSha - 原始檔案 SHA
+ * @returns {Promise<Object>} 新檔案資訊 { name, sha, url }
+ */
+export async function renameFile(oldName, newName, oldSha) {
+    const trimmedNewName = validateRenameFilename(newName, oldName);
+
+    const oldPath = getFilePath(oldName);
+    const newPath = getFilePath(trimmedNewName);
+
+    // 大小寫敏感比對：若大小寫不同則同視為改名，跳過存在性檢查
+    const isSameNameDifferentCase = oldName.toLowerCase() === trimmedNewName.toLowerCase();
+
+    if (!isSameNameDifferentCase) {
+        let existing;
+        try {
+            existing = await checkFileExists(newPath);
+        } catch (error) {
+            throw translateGitHubError(error, `檢查新檔名「${trimmedNewName}」是否存在`);
+        }
+        if (existing) {
+            const conflictError = new Error(`目的檔名「${trimmedNewName}」已存在，請選擇其他名稱`);
+            conflictError.userMessage = conflictError.message;
+            throw conflictError;
+        }
+    }
+
+    // 取得原始檔案內容（base64）
+    let originalFile;
+    try {
+        originalFile = await checkFileExists(oldPath);
+    } catch (error) {
+        throw translateGitHubError(error, `讀取原始檔案「${oldName}」內容`);
+    }
+    if (!originalFile || !originalFile.content) {
+        const missingError = new Error(`找不到原始檔案「${oldName}」`);
+        missingError.userMessage = missingError.message;
+        throw missingError;
+    }
+
+    const cleanedContent = String(originalFile.content).replace(/\s/g, '');
+    const sourceSha = oldSha || originalFile.sha;
+
+    // 建立新檔
+    let putResult;
+    try {
+        putResult = await putRepoFile(
+            newPath,
+            cleanedContent,
+            `Rename ${oldName} -> ${trimmedNewName}`,
+            null,
+        );
+    } catch (error) {
+        throw translateGitHubError(error, `建立新檔案「${trimmedNewName}」`);
+    }
+
+    // 刪除舊檔
+    try {
+        await deleteRepoFile(
+            oldPath,
+            sourceSha,
+            `Remove ${oldName} after rename to ${trimmedNewName}`,
+        );
+    } catch (error) {
+        const translated = translateGitHubError(
+            error,
+            `重新命名後刪除原始檔案「${oldName}」失敗，新檔案「${trimmedNewName}」已建立`,
+        );
+        logger.error('Rename cleanup failed', getGitHubErrorDetails(translated));
+        throw translated;
+    }
+
+    return {
+        name: trimmedNewName,
+        sha: putResult.content.sha,
+        url: getFileUrl(trimmedNewName),
+    };
 }
 
 /**

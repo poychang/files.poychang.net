@@ -9,11 +9,13 @@ import { showButtonLoading, hideButtonLoading } from './loading.js';
 // Modal 實例
 let deleteFolderModalInstance;
 let deleteFileModalInstance;
+let renameFileModalInstance;
 let uploadConfirmModalInstance;
 
 // DOM 元素
 let deleteFolderModal, folderToDeleteName, confirmDeleteFolderBtn;
 let deleteFileModal, fileToDeleteName, confirmDeleteFileBtn;
+let renameFileModal, renameFileCurrentName, renameFileInput, renameFileError, confirmRenameFileBtn;
 let uploadConfirmModal, uploadFileCount, uploadTargetPath, uploadConfirmNotice, confirmUploadBtn;
 
 /**
@@ -36,6 +38,17 @@ export function initModal() {
 
     if (deleteFileModal) {
         deleteFileModalInstance = new bootstrap.Modal(deleteFileModal);
+    }
+
+    // 初始化重新命名檔案 Modal
+    renameFileModal = document.getElementById(DOM_IDS.RENAME_FILE_MODAL);
+    renameFileCurrentName = document.getElementById(DOM_IDS.RENAME_FILE_CURRENT_NAME);
+    renameFileInput = document.getElementById(DOM_IDS.RENAME_FILE_INPUT);
+    renameFileError = document.getElementById(DOM_IDS.RENAME_FILE_ERROR);
+    confirmRenameFileBtn = document.getElementById(DOM_IDS.CONFIRM_RENAME_FILE_BTN);
+
+    if (renameFileModal) {
+        renameFileModalInstance = new bootstrap.Modal(renameFileModal);
     }
 
     // 初始化上傳確認 Modal
@@ -99,6 +112,107 @@ export function hideDeleteFileModal() {
     if (deleteFileModalInstance) {
         deleteFileModalInstance.hide();
     }
+}
+
+/**
+ * 顯示重新命名檔案對話框
+ * @param {string} fileName - 目前的檔案名稱
+ * @param {(newName: string) => Promise<void>} onConfirm - 確認重新命名的回調，接收使用者輸入的新名稱
+ */
+export function showRenameFileModal(fileName, onConfirm) {
+    if (!renameFileModal || !renameFileModalInstance || !confirmRenameFileBtn) return;
+
+    if (renameFileCurrentName) {
+        renameFileCurrentName.textContent = fileName;
+    }
+    if (renameFileInput) {
+        renameFileInput.value = fileName;
+    }
+    clearRenameFileError();
+
+    // 重新綁定確認按鈕，避免舊事件殘留
+    const newButton = confirmRenameFileBtn.cloneNode(true);
+    confirmRenameFileBtn.parentNode.replaceChild(newButton, confirmRenameFileBtn);
+    confirmRenameFileBtn = newButton;
+
+    const submit = async () => {
+        const inputValue = renameFileInput ? renameFileInput.value : '';
+        clearRenameFileError();
+        showButtonLoading(confirmRenameFileBtn, '重新命名中...');
+
+        try {
+            if (onConfirm) {
+                await onConfirm(inputValue);
+            }
+            renameFileModalInstance.hide();
+        } catch (error) {
+            hideButtonLoading(confirmRenameFileBtn);
+            showRenameFileError(error?.userMessage || error?.message || '重新命名失敗');
+        }
+    };
+
+    confirmRenameFileBtn.addEventListener('click', submit);
+
+    const handleEnterKey = (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            submit();
+        }
+    };
+
+    if (renameFileInput) {
+        renameFileInput.addEventListener('keydown', handleEnterKey);
+    }
+
+    renameFileModal.addEventListener(
+        'shown.bs.modal',
+        () => {
+            if (!renameFileInput) return;
+            renameFileInput.focus();
+            const dotIndex = renameFileInput.value.lastIndexOf('.');
+            if (dotIndex > 0) {
+                renameFileInput.setSelectionRange(0, dotIndex);
+            } else {
+                renameFileInput.select();
+            }
+        },
+        { once: true },
+    );
+
+    renameFileModal.addEventListener(
+        'hidden.bs.modal',
+        () => {
+            hideButtonLoading(confirmRenameFileBtn);
+            clearRenameFileError();
+            if (renameFileInput) {
+                renameFileInput.removeEventListener('keydown', handleEnterKey);
+            }
+        },
+        { once: true },
+    );
+
+    renameFileModalInstance.show();
+}
+
+/**
+ * 隱藏重新命名檔案對話框
+ */
+export function hideRenameFileModal() {
+    if (renameFileModalInstance) {
+        renameFileModalInstance.hide();
+    }
+}
+
+function showRenameFileError(message) {
+    if (!renameFileError) return;
+    renameFileError.textContent = message;
+    renameFileError.classList.remove('d-none');
+}
+
+function clearRenameFileError() {
+    if (!renameFileError) return;
+    renameFileError.textContent = '';
+    renameFileError.classList.add('d-none');
 }
 
 /**
