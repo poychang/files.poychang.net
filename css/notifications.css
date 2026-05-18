@@ -74,52 +74,67 @@
     color: #9ec5fe;
 }
 
-.platform-notice-collapse {
-    margin: 0;
+.platform-notice-wrapper {
+    display: inline-flex;
 }
 
-.platform-notice-summary {
-    list-style: none;
+.platform-notice-popover {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    z-index: 1080;
+    width: min(420px, calc(100vw - 2rem));
+    background-color: var(--bs-body-bg, #fff);
+    color: var(--bs-body-color, #212529);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.175);
+    padding: 1rem;
+}
+
+[data-theme="dark"] .platform-notice-popover {
+    background-color: #2b2b2b;
+    color: #e9ecef;
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.platform-notice-popover::before {
+    content: "";
+    position: absolute;
+    top: -0.5rem;
+    right: 0.75rem;
+    width: 1rem;
+    height: 1rem;
+    background-color: inherit;
+    border-left: 1px solid rgba(0, 0, 0, 0.15);
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    transform: rotate(45deg);
+}
+
+[data-theme="dark"] .platform-notice-popover::before {
+    border-left-color: rgba(255, 255, 255, 0.15);
+    border-top-color: rgba(255, 255, 255, 0.15);
+}
+
+.platform-notice-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    cursor: pointer;
-    user-select: none;
-}
-
-.platform-notice-summary::-webkit-details-marker {
-    display: none;
-}
-
-.platform-notice-summary-main {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    min-width: 0;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
 }
 
 .platform-notice-title {
-    font-size: 1.1rem;
+    font-size: 1rem;
     font-weight: 600;
 }
 
-.platform-notice-chevron {
-    transition: transform 0.2s ease;
-}
-
-.platform-notice-collapse[open] .platform-notice-chevron {
-    transform: rotate(180deg);
-}
-
 .platform-notice-content {
-    margin-top: 0.75rem;
-    padding-left: 2.5rem;
+    position: relative;
 }
 
-@media (max-width: 768px) {
-    .platform-notice-content {
-        padding-left: 0;
+@media (max-width: 575.98px) {
+    .platform-notice-popover {
+        right: -0.5rem;
     }
 }
 
