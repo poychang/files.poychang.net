@@ -25,6 +25,7 @@ export function initUpload() {
     // 設定拖曳上傳
     if (dropZone && fileInput && selectFilesBtn) {
         setupDragAndDrop();
+        setupClipboardPaste();
         selectFilesBtn.addEventListener('click', () => fileInput.click());
     }
 
@@ -100,6 +101,113 @@ function handleDrop(e) {
 
     if (files && files.length > 0) {
         handleFilesSelected(files);
+    }
+}
+
+/**
+ * 設定剪貼簿貼上上傳功能
+ * 允許使用者直接在上傳區可見時按 Ctrl+V 貼上檔案或截圖
+ */
+function setupClipboardPaste() {
+    document.addEventListener('paste', handlePaste);
+}
+
+/**
+ * 判斷目前焦點是否在可輸入文字的元素
+ * 若是，則略過貼上檔案以免干擾使用者輸入
+ * @returns {boolean}
+ */
+function isEditableTarget(target) {
+    if (!target) return false;
+    const tag = target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+    if (target.isContentEditable) return true;
+    return false;
+}
+
+/**
+ * 處理剪貼簿貼上事件
+ * @param {ClipboardEvent} e - 貼上事件
+ */
+function handlePaste(e) {
+    // 若上傳區不在畫面上（例如使用者在其他分頁/檢視），則不處理
+    if (!dropZone || !dropZone.offsetParent) return;
+
+    // 若使用者正在輸入欄位中，避免攔截一般文字貼上
+    if (isEditableTarget(e.target)) return;
+
+    const clipboardData = e.clipboardData;
+    if (!clipboardData) return;
+
+    const files = extractFilesFromClipboard(clipboardData);
+    if (files.length === 0) return;
+
+    e.preventDefault();
+    handleFilesSelected(files);
+}
+
+/**
+ * 從剪貼簿資料中萃取檔案（包含複製的檔案與截圖）
+ * @param {DataTransfer} clipboardData
+ * @returns {File[]}
+ */
+function extractFilesFromClipboard(clipboardData) {
+    const collected = [];
+    const seen = new Set();
+
+    const pushFile = (file) => {
+        if (!file) return;
+        const key = `${file.name}|${file.size}|${file.lastModified}|${file.type}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        collected.push(file);
+    };
+
+    if (clipboardData.files && clipboardData.files.length > 0) {
+        for (const file of clipboardData.files) {
+            pushFile(file);
+        }
+    }
+
+    if (clipboardData.items && clipboardData.items.length > 0) {
+        for (const item of clipboardData.items) {
+            if (item.kind === 'file') {
+                const file = item.getAsFile();
+                if (file) {
+                    pushFile(ensureFileName(file));
+                }
+            }
+        }
+    }
+
+    return collected;
+}
+
+/**
+ * 對於沒有檔名的剪貼簿項目（如直接複製的截圖），補上有意義的檔名
+ * @param {File} file
+ * @returns {File}
+ */
+function ensureFileName(file) {
+    if (file.name && file.name !== 'image.png' && file.name.trim() !== '') {
+        return file;
+    }
+
+    const ext = (file.type && file.type.split('/')[1]) || 'png';
+    const timestamp = new Date()
+        .toISOString()
+        .replace(/[:.]/g, '-')
+        .replace('T', '_')
+        .replace('Z', '');
+    const newName = `clipboard-${timestamp}.${ext}`;
+
+    try {
+        return new File([file], newName, {
+            type: file.type,
+            lastModified: file.lastModified,
+        });
+    } catch {
+        return file;
     }
 }
 
