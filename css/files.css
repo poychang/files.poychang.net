@@ -45,6 +45,11 @@
     padding: 1rem;
 }
 
+.file-item-content {
+    width: 100%;
+    min-width: 0;
+}
+
 .file-item:hover {
     background-color: var(--drop-zone-hover);
 }
@@ -107,6 +112,9 @@
 .file-actions {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    margin-left: auto;
 }
 
 .file-icon {

@@ -133,7 +133,7 @@ function createFileItem(file) {
 
     return `
         <div class="list-group-item file-item" data-filename="${file.name}">
-            <div class="d-flex align-items-center gap-3">
+            <div class="file-item-content d-flex align-items-center gap-3">
                 <div class="flex-shrink-0">
                     ${
                         isImage
