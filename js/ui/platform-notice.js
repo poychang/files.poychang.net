@@ -43,25 +43,64 @@ function summarizeFiles(files) {
     return files.slice(0, 3).map((file) => file.name).join('、');
 }
 
+function initPlatformNoticePopover() {
+    const button = document.getElementById('platform-notice-btn');
+    const popover = document.getElementById('platform-notice-popover');
+
+    if (!button || !popover) {
+        return;
+    }
+
+    const setOpen = (open) => {
+        popover.classList.toggle('d-none', !open);
+        popover.setAttribute('aria-hidden', open ? 'false' : 'true');
+        button.setAttribute('aria-expanded', open ? 'true' : 'false');
+        button.classList.toggle('active', open);
+    };
+
+    const close = () => setOpen(false);
+
+    button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const isOpen = !popover.classList.contains('d-none');
+        setOpen(!isOpen);
+    });
+
+    popover.addEventListener('click', (event) => {
+        event.stopPropagation();
+    });
+
+    document.addEventListener('click', (event) => {
+        if (popover.classList.contains('d-none')) return;
+        if (!popover.contains(event.target) && !button.contains(event.target)) {
+            close();
+        }
+    });
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !popover.classList.contains('d-none')) {
+            close();
+            button.focus();
+        }
+    });
+}
+
 export function initPlatformNotice() {
     setMarkup(
         DOM_IDS.PLATFORM_BOUNDARY_NOTICE,
         `
-            <details class="platform-notice-collapse">
-                <summary class="platform-notice-summary">
-                    <span class="platform-notice-summary-main">
-                        <i class="bi bi-exclamation-diamond-fill fs-4" aria-hidden="true"></i>
-                        <span class="platform-notice-title">使用限制與服務邊界</span>
-                    </span>
-                    <i class="bi bi-chevron-down platform-notice-chevron" aria-hidden="true"></i>
-                </summary>
-                <div class="platform-notice-content">
-                    <p class="mb-2">這個站點是 GitHub 靜態檔案託管管理介面，不是一般雲端儲存服務。</p>
-                    ${renderList(AUTHENTICATED_NOTICE_ITEMS)}
+            <div class="platform-notice-content">
+                <div class="platform-notice-header">
+                    <i class="bi bi-exclamation-diamond-fill fs-5 text-warning" aria-hidden="true"></i>
+                    <span class="platform-notice-title">使用限制與服務邊界</span>
                 </div>
-            </details>
+                <p class="mb-2 small">這個站點是 GitHub 靜態檔案託管管理介面，不是一般雲端儲存服務。</p>
+                ${renderList(AUTHENTICATED_NOTICE_ITEMS, 'mb-0 ps-3 small')}
+            </div>
         `
     );
+
+    initPlatformNoticePopover();
 
     setMarkup(
         DOM_IDS.UPLOAD_LIMIT_NOTICE,
