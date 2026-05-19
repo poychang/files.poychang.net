@@ -142,7 +142,7 @@ function createFileItem(file) {
     const escapedOpenUrl = isSafeUrl(rawOpenUrl) ? escapeHtml(rawOpenUrl) : escapedDownloadUrl;
 
     return `
-        <div class="list-group-item file-item" data-filename="${file.name}">
+        <div class="list-group-item file-item" data-filename="${escapedName}">
             <div class="file-item-content d-flex align-items-center gap-3">
                 <div class="flex-shrink-0">
                     ${
@@ -200,6 +200,7 @@ function openLightboxFromElement(el) {
 function escapeHtml(str) {
     return String(str)
         .replace(/&/g, '&amp;')
+        .replace(/'/g, '&#x27;')
         .replace(/"/g, '&quot;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;');
