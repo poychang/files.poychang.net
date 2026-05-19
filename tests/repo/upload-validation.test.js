@@ -82,7 +82,9 @@ test('buildUploadSelectionFeedback reflects blocking outcomes', () => {
     ]);
 
     assert.match(buildUploadSelectionFeedback(allBlocked), /未送出任何上傳請求/);
+    assert.match(buildUploadSelectionFeedback(allBlocked), /1\. 「virus\.exe」的副檔名不在允許清單內。/);
     assert.match(buildUploadSelectionFeedback(partial), /其餘 1 個檔案可繼續上傳/);
+    assert.match(buildUploadSelectionFeedback(partial), /1\. 「virus\.exe」的副檔名不在允許清單內。/);
     assert.equal(
         buildUploadSelectionFeedback(validateUploadSelection([createFile('ok.txt', 10)])),
         null

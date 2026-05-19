@@ -197,12 +197,15 @@ export function buildUploadSelectionFeedback(selectionResult) {
     }
 
     const issueCount = selectionResult.blockingIssues.length;
+    const issueDetails = selectionResult.blockingIssues
+        .map((issue, index) => `${index + 1}. ${issue.message}`)
+        .join('\n');
 
     if (selectionResult.validFiles.length === 0) {
-        return `這批檔案未通過上傳前驗證，共有 ${issueCount} 個問題，未送出任何上傳請求。`;
+        return `這批檔案未通過上傳前驗證，共有 ${issueCount} 個問題，未送出任何上傳請求。\n${issueDetails}`;
     }
 
-    return `已略過 ${selectionResult.skippedFileCount} 個不符合規則的檔案，共發現 ${issueCount} 個問題；其餘 ${selectionResult.validFiles.length} 個檔案可繼續上傳。`;
+    return `已略過 ${selectionResult.skippedFileCount} 個不符合規則的檔案，共發現 ${issueCount} 個問題；其餘 ${selectionResult.validFiles.length} 個檔案可繼續上傳。\n${issueDetails}`;
 }
 
 export function getSupportedUploadExtensions() {
