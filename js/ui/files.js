@@ -185,10 +185,12 @@ function createFileItem(file) {
  * @param {HTMLElement} el - 含有 data-* 屬性的按鈕元素
  */
 function openLightboxFromElement(el) {
+    const src = el.dataset.lightboxSrc;
+    if (!src) return;
     showImageLightbox({
-        src: el.dataset.lightboxSrc,
+        src,
         filename: el.dataset.filename,
-        openUrl: el.dataset.lightboxOpenUrl || el.dataset.lightboxSrc,
+        openUrl: el.dataset.lightboxOpenUrl || src,
     });
 }
 
