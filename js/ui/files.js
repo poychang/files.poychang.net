@@ -7,6 +7,7 @@ import { DOM_IDS } from '../core/index.js';
 import { showSuccess, showError } from './toast.js';
 import { showLoading, showEmptyState, showErrorState } from './loading.js';
 import { showDeleteFileModal, showRenameFileModal } from './modal.js';
+import { showImageLightbox } from './lightbox.js';
 import { buildCopyLinkMessage } from './platform-notice.js';
 
 // DOM 元素
@@ -99,6 +100,28 @@ export function displayFileList(files) {
     // 渲染檔案列表
     fileListContainer.innerHTML = files.map((file) => createFileItem(file)).join('');
 
+    // 綁定圖像預覽 Lightbox 事件
+    fileListContainer.querySelectorAll('.file-preview-img').forEach((img) => {
+        img.addEventListener('click', () => {
+            showImageLightbox({
+                src: img.dataset.lightboxSrc || img.src,
+                filename: img.dataset.filename || img.alt,
+                openUrl: img.dataset.lightboxOpenUrl || img.dataset.lightboxSrc || img.src,
+            });
+        });
+
+        img.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                showImageLightbox({
+                    src: img.dataset.lightboxSrc || img.src,
+                    filename: img.dataset.filename || img.alt,
+                    openUrl: img.dataset.lightboxOpenUrl || img.dataset.lightboxSrc || img.src,
+                });
+            }
+        });
+    });
+
     // 綁定複製按鈕事件
     fileListContainer.querySelectorAll('.btn-copy-link').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -137,7 +160,7 @@ function createFileItem(file) {
                 <div class="flex-shrink-0">
                     ${
                         isImage
-                            ? `<img src="${file.downloadUrl}" class="file-preview-img" alt="${file.name}" loading="lazy">`
+                            ? `<img src="${file.downloadUrl}" class="file-preview-img" alt="${file.name}" loading="lazy" tabindex="0" role="button" title="點選放大檢視" data-filename="${file.name}" data-lightbox-src="${file.downloadUrl}" data-lightbox-open-url="${file.url || file.downloadUrl}">`
                             : `<i class="${iconClass} file-icon-large"></i>`
                     }
                 </div>

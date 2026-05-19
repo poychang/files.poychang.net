@@ -6,6 +6,7 @@
 import { initTheme } from './theme.js';
 import { initToast, showSuccess, showError, showInfo, showWarning } from './toast.js';
 import { initModal, showUploadConfirmModal } from './modal.js';
+import { initLightbox } from './lightbox.js';
 import { initNavbar } from './navbar.js';
 import { initViews, showLoggedOutState, showAuthenticatedHome, showFolderFiles } from './views.js';
 import { initFolderFilter } from './folder-filter.js';
@@ -29,6 +30,7 @@ export function initUI() {
     initTheme();
     initToast();
     initModal();
+    initLightbox();
     initNavbar();
     initViews();
     initFolderFilter();
