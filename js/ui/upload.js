@@ -146,35 +146,37 @@ function handlePaste(e) {
  * @returns {File[]}
  */
 function extractFilesFromClipboard(clipboardData) {
-    const collected = [];
-    const seen = new Set();
+    const rawFiles = [];
+    const seenRefs = new WeakSet();
+    const seenKeys = new Set();
 
-    const pushFile = (file) => {
+    // 先收集原始 File，依物件參照與內容特徵去重，
+    // 避免同一張截圖同時出現在 clipboardData.files 與 clipboardData.items 而被加入兩次。
+    const pushRaw = (file) => {
         if (!file) return;
+        if (seenRefs.has(file)) return;
         const key = `${file.name}|${file.size}|${file.lastModified}|${file.type}`;
-        if (seen.has(key)) return;
-        seen.add(key);
-        collected.push(file);
+        if (seenKeys.has(key)) return;
+        seenRefs.add(file);
+        seenKeys.add(key);
+        rawFiles.push(file);
     };
 
     if (clipboardData.files && clipboardData.files.length > 0) {
         for (const file of clipboardData.files) {
-            pushFile(ensureFileName(file));
+            pushRaw(file);
         }
     }
 
     if (clipboardData.items && clipboardData.items.length > 0) {
         for (const item of clipboardData.items) {
             if (item.kind === 'file') {
-                const file = item.getAsFile();
-                if (file) {
-                    pushFile(ensureFileName(file));
-                }
+                pushRaw(item.getAsFile());
             }
         }
     }
 
-    return collected;
+    return rawFiles.map((file) => ensureFileName(file));
 }
 
 /**
