@@ -154,6 +154,12 @@ export const DOM_IDS = {
     RENAME_FILE_ERROR: 'rename-file-error',
     CONFIRM_RENAME_FILE_BTN: 'confirm-rename-file-btn',
 
+    // Modal - 圖像預覽 Lightbox
+    IMAGE_LIGHTBOX_MODAL: 'imageLightboxModal',
+    IMAGE_LIGHTBOX_TITLE: 'image-lightbox-title',
+    IMAGE_LIGHTBOX_IMAGE: 'image-lightbox-image',
+    IMAGE_LIGHTBOX_OPEN_BTN: 'image-lightbox-open-btn',
+
     
     // Progress
     UPLOAD_PROGRESS: 'upload-progress',
