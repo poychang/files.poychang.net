@@ -101,25 +101,8 @@ export function displayFileList(files) {
     fileListContainer.innerHTML = files.map((file) => createFileItem(file)).join('');
 
     // 綁定圖像預覽 Lightbox 事件
-    fileListContainer.querySelectorAll('.file-preview-img').forEach((img) => {
-        img.addEventListener('click', () => {
-            showImageLightbox({
-                src: img.dataset.lightboxSrc || img.src,
-                filename: img.dataset.filename || img.alt,
-                openUrl: img.dataset.lightboxOpenUrl || img.dataset.lightboxSrc || img.src,
-            });
-        });
-
-        img.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                showImageLightbox({
-                    src: img.dataset.lightboxSrc || img.src,
-                    filename: img.dataset.filename || img.alt,
-                    openUrl: img.dataset.lightboxOpenUrl || img.dataset.lightboxSrc || img.src,
-                });
-            }
-        });
+    fileListContainer.querySelectorAll('.file-preview-btn').forEach((btn) => {
+        btn.addEventListener('click', () => openLightboxFromElement(btn));
     });
 
     // 綁定複製按鈕事件
@@ -153,6 +136,10 @@ function createFileItem(file) {
     const iconClass = file.iconClass || 'bi-file-earmark';
     const isImage = file.type === 'image';
     const sizeLabel = file.sizeLabel || '';
+    const escapedName = escapeHtml(file.name);
+    const escapedDownloadUrl = escapeHtml(file.downloadUrl);
+    const rawOpenUrl = file.url || file.downloadUrl;
+    const escapedOpenUrl = isSafeUrl(rawOpenUrl) ? escapeHtml(rawOpenUrl) : escapedDownloadUrl;
 
     return `
         <div class="list-group-item file-item" data-filename="${file.name}">
@@ -160,7 +147,7 @@ function createFileItem(file) {
                 <div class="flex-shrink-0">
                     ${
                         isImage
-                            ? `<img src="${file.downloadUrl}" class="file-preview-img" alt="${file.name}" loading="lazy" tabindex="0" role="button" title="點選放大檢視" data-filename="${file.name}" data-lightbox-src="${file.downloadUrl}" data-lightbox-open-url="${file.url || file.downloadUrl}">`
+                            ? `<button class="file-preview-btn" aria-label="放大檢視 ${escapedName}" data-filename="${escapedName}" data-lightbox-src="${escapedDownloadUrl}" data-lightbox-open-url="${escapedOpenUrl}"><img src="${escapedDownloadUrl}" class="file-preview-img" alt="${escapedName}" loading="lazy"></button>`
                             : `<i class="${iconClass} file-icon-large"></i>`
                     }
                 </div>
@@ -191,6 +178,45 @@ function createFileItem(file) {
             </div>
         </div>
     `;
+}
+
+/**
+ * 從按鈕元素開啟 Lightbox
+ * @param {HTMLElement} el - 含有 data-* 屬性的按鈕元素
+ */
+function openLightboxFromElement(el) {
+    showImageLightbox({
+        src: el.dataset.lightboxSrc,
+        filename: el.dataset.filename,
+        openUrl: el.dataset.lightboxOpenUrl || el.dataset.lightboxSrc,
+    });
+}
+
+/**
+ * 將字串中的 HTML 特殊字元轉義，防止 XSS
+ * @param {string} str - 原始字串
+ * @returns {string} 轉義後的字串
+ */
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+/**
+ * 檢查 URL 是否為安全的 http(s) 連結
+ * @param {string} url - 要驗證的 URL
+ * @returns {boolean}
+ */
+function isSafeUrl(url) {
+    try {
+        const parsed = new URL(url, window.location.href);
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+        return false;
+    }
 }
 
 /**

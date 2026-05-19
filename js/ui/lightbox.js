@@ -20,22 +20,28 @@ export function initLightbox() {
     lightboxImage = document.getElementById(DOM_IDS.IMAGE_LIGHTBOX_IMAGE);
     lightboxOpenBtn = document.getElementById(DOM_IDS.IMAGE_LIGHTBOX_OPEN_BTN);
 
-    if (lightboxModal && typeof bootstrap !== 'undefined') {
-        lightboxModalInstance = new bootstrap.Modal(lightboxModal);
+    if (!lightboxModal) {
+        console.warn('[Lightbox] Modal element not found. Ensure the modal HTML is present in the page.');
+        return;
     }
 
-    if (lightboxModal) {
-        // 關閉時清除圖像來源，避免下一次開啟時短暫顯示上一張圖。
-        lightboxModal.addEventListener('hidden.bs.modal', () => {
-            if (lightboxImage) {
-                lightboxImage.src = '';
-                lightboxImage.alt = '';
-            }
-            if (lightboxOpenBtn) {
-                lightboxOpenBtn.href = '#';
-            }
-        });
+    if (typeof bootstrap === 'undefined') {
+        console.warn('[Lightbox] Bootstrap is not available. The lightbox will not function.');
+        return;
     }
+
+    lightboxModalInstance = new bootstrap.Modal(lightboxModal);
+
+    // 關閉時清除圖像來源，避免下一次開啟時短暫顯示上一張圖。
+    lightboxModal.addEventListener('hidden.bs.modal', () => {
+        if (lightboxImage) {
+            lightboxImage.src = '';
+            lightboxImage.alt = '';
+        }
+        if (lightboxOpenBtn) {
+            lightboxOpenBtn.href = '#';
+        }
+    });
 }
 
 /**
@@ -56,7 +62,14 @@ export function showImageLightbox({ src, filename, openUrl }) {
     }
 
     if (lightboxOpenBtn) {
-        lightboxOpenBtn.href = openUrl || src;
+        const targetUrl = openUrl || src;
+        try {
+            const parsed = new URL(targetUrl, window.location.href);
+            lightboxOpenBtn.href =
+                parsed.protocol === 'http:' || parsed.protocol === 'https:' ? targetUrl : '#';
+        } catch {
+            lightboxOpenBtn.href = '#';
+        }
     }
 
     lightboxModalInstance.show();
