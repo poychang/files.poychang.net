@@ -25,3 +25,22 @@ test('pickOldestCommitDate falls back to author date when committer date is miss
 
     assert.equal(pickOldestCommitDate(commits), '2026-09-20T05:00:00Z');
 });
+
+test('pickOldestCommitDate still finds earliest date when commits are unsorted', () => {
+    const commits = [
+        { commit: { committer: { date: '2026-09-22T12:00:00Z' } } },
+        { commit: { committer: { date: '2026-09-24T12:00:00Z' } } },
+        { commit: { committer: { date: '2026-09-20T12:00:00Z' } } },
+    ];
+
+    assert.equal(pickOldestCommitDate(commits), '2026-09-20T12:00:00Z');
+});
+
+test('pickOldestCommitDate ignores invalid date values', () => {
+    const commits = [
+        { commit: { committer: { date: 'invalid-date' } } },
+        { commit: { committer: { date: '2026-09-20T12:00:00Z' } } },
+    ];
+
+    assert.equal(pickOldestCommitDate(commits), '2026-09-20T12:00:00Z');
+});

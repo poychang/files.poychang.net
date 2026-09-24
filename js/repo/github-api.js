@@ -64,25 +64,41 @@ export async function getRepoContents(path) {
  */
 export async function getOldestCommitDateByPath(path) {
     const octokit = ensureOctokit();
-    let oldestDate = null;
+    function getLastPageFromLinkHeader(linkHeader) {
+        if (!linkHeader) return null;
+        const lastMatch = linkHeader.match(/page=(\d+)>;\s*rel="last"/);
+        return lastMatch ? Number(lastMatch[1]) : null;
+    }
 
     try {
-        const iterator = octokit.paginate.iterator('GET /repos/{owner}/{repo}/commits', {
+        const firstPageResponse = await octokit.request('GET /repos/{owner}/{repo}/commits', {
             owner: CONFIG.defaultRepo.owner,
             repo: CONFIG.defaultRepo.repo,
             sha: CONFIG.defaultRepo.branch,
             path,
-            per_page: 100,
+            per_page: 1,
+            page: 1,
         });
 
-        for await (const { data } of iterator) {
-            const pageOldestDate = pickOldestCommitDate(data);
-            if (pageOldestDate) {
-                oldestDate = pageOldestDate;
-            }
+        const firstPageDate = pickOldestCommitDate(firstPageResponse.data);
+        if (!firstPageDate) {
+            return null;
         }
 
-        return oldestDate;
+        const lastPage = getLastPageFromLinkHeader(firstPageResponse.headers?.link);
+        if (!lastPage || lastPage <= 1) {
+            return firstPageDate;
+        }
+
+        const lastPageResponse = await octokit.request('GET /repos/{owner}/{repo}/commits', {
+            owner: CONFIG.defaultRepo.owner,
+            repo: CONFIG.defaultRepo.repo,
+            sha: CONFIG.defaultRepo.branch,
+            path,
+            per_page: 1,
+            page: lastPage,
+        });
+        return pickOldestCommitDate(lastPageResponse.data) || firstPageDate;
     } catch (error) {
         throw translateGitHubError(error, `讀取路徑建立時間 (${path})`);
     }
