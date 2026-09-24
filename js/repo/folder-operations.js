@@ -82,6 +82,24 @@ async function resolveFolderCreatedAt(folderPath) {
     }
 }
 
+function getCreatedAtTimestamp(createdAt) {
+    if (!createdAt) {
+        return Number.NEGATIVE_INFINITY;
+    }
+
+    const timestamp = new Date(createdAt).getTime();
+    return Number.isNaN(timestamp) ? Number.NEGATIVE_INFINITY : timestamp;
+}
+
+function compareFoldersByCreatedAt(a, b) {
+    const createdAtDiff = getCreatedAtTimestamp(b.createdAt) - getCreatedAtTimestamp(a.createdAt);
+    if (createdAtDiff !== 0) {
+        return createdAtDiff;
+    }
+
+    return a.name.localeCompare(b.name);
+}
+
 /**
  * 建立新的子資料夾（通過建立 .gitkeep 檔案）
  * @param {string} folderName - 資料夾名稱
@@ -177,21 +195,21 @@ export async function listSubFolders() {
     try {
         const data = await getRepoContents(CONFIG.fileBasePath);
 
-        // 過濾出分類並按字母順序排序
-        const sortedFolders = data
-            .filter((item) => item.type === 'dir')
-            .map((folder) => ({
-                name: folder.name,
-                path: folder.path,
-                sha: folder.sha,
-            }))
-            .sort((a, b) => a.name.localeCompare(b.name));
-
-        const folders = await mapWithConcurrency(sortedFolders, async (folder) => ({
+        const folders = await mapWithConcurrency(
+            data
+                .filter((item) => item.type === 'dir')
+                .map((folder) => ({
+                    name: folder.name,
+                    path: folder.path,
+                    sha: folder.sha,
+                })),
+            async (folder) => ({
                 ...folder,
                 createdAt: await resolveFolderCreatedAt(folder.path),
             })
         );
+
+        folders.sort(compareFoldersByCreatedAt);
 
         return folders;
     } catch (error) {
