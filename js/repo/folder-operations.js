@@ -5,6 +5,7 @@
 
 import {
     getRepoContents,
+    getOldestCommitDateByPath,
     putRepoFile,
     deleteRepoFile,
     translateGitHubError,
@@ -15,6 +16,71 @@ import { API_ERROR_CODES, CONFIG, ERROR_MESSAGES } from '../core/index.js';
 
 const FOLDER_SYNC_DELAY_MS = 400;
 const FOLDER_SYNC_MAX_ATTEMPTS = 6;
+const FOLDER_CREATED_AT_CONCURRENCY = 3;
+const FOLDER_CREATED_AT_CACHE_TTL_MS = 5 * 60 * 1000;
+const folderCreatedAtCache = new Map();
+
+async function mapWithConcurrency(items, mapper, concurrency = FOLDER_CREATED_AT_CONCURRENCY) {
+    const results = new Array(items.length);
+    let currentIndex = 0;
+
+    async function worker() {
+        while (currentIndex < items.length) {
+            const index = currentIndex;
+            currentIndex += 1;
+            results[index] = await mapper(items[index], index);
+        }
+    }
+
+    const workerCount = Math.max(1, Math.min(concurrency, items.length));
+    await Promise.all(Array.from({ length: workerCount }, () => worker()));
+    return results;
+}
+
+async function resolveFolderCreatedAt(folderPath) {
+    const cached = folderCreatedAtCache.get(folderPath);
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.promise;
+    }
+    folderCreatedAtCache.delete(folderPath);
+
+    const createdAtPromise = (async () => {
+        const gitkeepPath = `${folderPath}/.gitkeep`;
+
+        try {
+            const gitkeepCreatedAt = await getOldestCommitDateByPath(gitkeepPath);
+            if (gitkeepCreatedAt) {
+                return gitkeepCreatedAt;
+            }
+        } catch (error) {
+            if (!isGitHubErrorStatus(error, API_ERROR_CODES.NOT_FOUND)) {
+                throw error;
+            }
+            // .gitkeep 不存在時，改用資料夾路徑查詢
+        }
+
+        try {
+            return await getOldestCommitDateByPath(folderPath);
+        } catch (error) {
+            if (!isGitHubErrorStatus(error, API_ERROR_CODES.NOT_FOUND)) {
+                throw error;
+            }
+            return null;
+        }
+    })();
+
+    folderCreatedAtCache.set(folderPath, {
+        promise: createdAtPromise,
+        expiresAt: Date.now() + FOLDER_CREATED_AT_CACHE_TTL_MS,
+    });
+
+    try {
+        return await createdAtPromise;
+    } catch (error) {
+        folderCreatedAtCache.delete(folderPath);
+        throw error;
+    }
+}
 
 /**
  * 建立新的子資料夾（通過建立 .gitkeep 檔案）
@@ -44,6 +110,7 @@ export async function createSubFolder(folderName) {
             btoa('\n'), // 簡單內容的 base64，避免空內容相容性問題
             `Create folder: ${cleanFolderName}`
         );
+        folderCreatedAtCache.clear();
 
         return {
             name: cleanFolderName,
@@ -111,7 +178,7 @@ export async function listSubFolders() {
         const data = await getRepoContents(CONFIG.fileBasePath);
 
         // 過濾出分類並按字母順序排序
-        const folders = data
+        const sortedFolders = data
             .filter((item) => item.type === 'dir')
             .map((folder) => ({
                 name: folder.name,
@@ -119,6 +186,12 @@ export async function listSubFolders() {
                 sha: folder.sha,
             }))
             .sort((a, b) => a.name.localeCompare(b.name));
+
+        const folders = await mapWithConcurrency(sortedFolders, async (folder) => ({
+                ...folder,
+                createdAt: await resolveFolderCreatedAt(folder.path),
+            })
+        );
 
         return folders;
     } catch (error) {
@@ -187,6 +260,7 @@ export async function deleteSubFolder(folderName) {
 
     try {
         await deleteFolderPathRecursively(folderPath, normalizedFolderName);
+        folderCreatedAtCache.delete(folderPath);
         return true;
     } catch (error) {
         throw translateGitHubError(error, `刪除分類「${normalizedFolderName}」`);
@@ -223,4 +297,3 @@ export async function getFolderFileCount(folderName) {
         return 0;
     }
 }
-

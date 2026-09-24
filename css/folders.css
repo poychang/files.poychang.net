@@ -84,9 +84,22 @@
 }
 
 .folder-list-item .folder-name {
-    flex: 1;
     font-weight: 500;
     color: var(--text-primary);
+    word-break: break-word;
+}
+
+.folder-list-item .folder-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.folder-list-item .folder-created-at {
+    margin-top: 0.125rem;
+    font-size: 0.8125rem;
+    line-height: 1.3;
     word-break: break-word;
 }
 

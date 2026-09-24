@@ -5,6 +5,7 @@
 
 import { getOctokit } from '../auth.js';
 import { API_ERROR_CODES, CONFIG } from '../core/index.js';
+import { pickOldestCommitDate } from './commit-utils.js';
 import {
     createAuthRequiredError,
     isGitHubErrorStatus,
@@ -54,6 +55,53 @@ export async function getRepoContents(path) {
         // 添加時間戳參數避免瀏覽器快取
         timestamp: Date.now()
     }, `讀取 repository 內容 (${path})`);
+}
+
+/**
+ * 取得指定路徑最早的提交時間
+ * @param {string} path - Repository 路徑
+ * @returns {Promise<string|null>} ISO 時間字串
+ */
+export async function getOldestCommitDateByPath(path) {
+    const octokit = ensureOctokit();
+    function getLastPageFromLinkHeader(linkHeader) {
+        if (!linkHeader) return null;
+        const lastMatch = linkHeader.match(/page=(\d+)>;\s*rel="last"/);
+        return lastMatch ? Number(lastMatch[1]) : null;
+    }
+
+    try {
+        const firstPageResponse = await octokit.request('GET /repos/{owner}/{repo}/commits', {
+            owner: CONFIG.defaultRepo.owner,
+            repo: CONFIG.defaultRepo.repo,
+            sha: CONFIG.defaultRepo.branch,
+            path,
+            per_page: 1,
+            page: 1,
+        });
+
+        const firstPageDate = pickOldestCommitDate(firstPageResponse.data);
+        if (!firstPageDate) {
+            return null;
+        }
+
+        const lastPage = getLastPageFromLinkHeader(firstPageResponse.headers?.link);
+        if (!lastPage || lastPage <= 1) {
+            return firstPageDate;
+        }
+
+        const lastPageResponse = await octokit.request('GET /repos/{owner}/{repo}/commits', {
+            owner: CONFIG.defaultRepo.owner,
+            repo: CONFIG.defaultRepo.repo,
+            sha: CONFIG.defaultRepo.branch,
+            path,
+            per_page: 1,
+            page: lastPage,
+        });
+        return pickOldestCommitDate(lastPageResponse.data) || firstPageDate;
+    } catch (error) {
+        throw translateGitHubError(error, `讀取路徑建立時間 (${path})`);
+    }
 }
 
 /**
