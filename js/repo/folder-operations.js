@@ -5,6 +5,7 @@
 
 import {
     getRepoContents,
+    getOldestCommitDateByPath,
     putRepoFile,
     deleteRepoFile,
     translateGitHubError,
@@ -15,6 +16,25 @@ import { API_ERROR_CODES, CONFIG, ERROR_MESSAGES } from '../core/index.js';
 
 const FOLDER_SYNC_DELAY_MS = 400;
 const FOLDER_SYNC_MAX_ATTEMPTS = 6;
+
+async function resolveFolderCreatedAt(folderPath) {
+    const gitkeepPath = `${folderPath}/.gitkeep`;
+
+    try {
+        const gitkeepCreatedAt = await getOldestCommitDateByPath(gitkeepPath);
+        if (gitkeepCreatedAt) {
+            return gitkeepCreatedAt;
+        }
+    } catch {
+        // .gitkeep 不存在或無法取得時，改用資料夾路徑查詢
+    }
+
+    try {
+        return await getOldestCommitDateByPath(folderPath);
+    } catch {
+        return null;
+    }
+}
 
 /**
  * 建立新的子資料夾（通過建立 .gitkeep 檔案）
@@ -111,7 +131,7 @@ export async function listSubFolders() {
         const data = await getRepoContents(CONFIG.fileBasePath);
 
         // 過濾出分類並按字母順序排序
-        const folders = data
+        const sortedFolders = data
             .filter((item) => item.type === 'dir')
             .map((folder) => ({
                 name: folder.name,
@@ -119,6 +139,13 @@ export async function listSubFolders() {
                 sha: folder.sha,
             }))
             .sort((a, b) => a.name.localeCompare(b.name));
+
+        const folders = await Promise.all(
+            sortedFolders.map(async (folder) => ({
+                ...folder,
+                createdAt: await resolveFolderCreatedAt(folder.path),
+            }))
+        );
 
         return folders;
     } catch (error) {
@@ -223,4 +250,3 @@ export async function getFolderFileCount(folderName) {
         return 0;
     }
 }
-

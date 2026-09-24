@@ -5,6 +5,7 @@
 
 import { getOctokit } from '../auth.js';
 import { API_ERROR_CODES, CONFIG } from '../core/index.js';
+import { pickOldestCommitDate } from './commit-utils.js';
 import {
     createAuthRequiredError,
     isGitHubErrorStatus,
@@ -54,6 +55,37 @@ export async function getRepoContents(path) {
         // 添加時間戳參數避免瀏覽器快取
         timestamp: Date.now()
     }, `讀取 repository 內容 (${path})`);
+}
+
+/**
+ * 取得指定路徑最早的提交時間
+ * @param {string} path - Repository 路徑
+ * @returns {Promise<string|null>} ISO 時間字串
+ */
+export async function getOldestCommitDateByPath(path) {
+    const octokit = ensureOctokit();
+    let oldestDate = null;
+
+    try {
+        const iterator = octokit.paginate.iterator('GET /repos/{owner}/{repo}/commits', {
+            owner: CONFIG.defaultRepo.owner,
+            repo: CONFIG.defaultRepo.repo,
+            sha: CONFIG.defaultRepo.branch,
+            path,
+            per_page: 100,
+        });
+
+        for await (const { data } of iterator) {
+            const pageOldestDate = pickOldestCommitDate(data);
+            if (pageOldestDate) {
+                oldestDate = pageOldestDate;
+            }
+        }
+
+        return oldestDate;
+    } catch (error) {
+        throw translateGitHubError(error, `讀取路徑建立時間 (${path})`);
+    }
 }
 
 /**

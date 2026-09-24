@@ -12,6 +12,7 @@ import {
 } from './loading.js';
 import { showDeleteFolderModal } from './modal.js';
 import { reapplyFilter } from './folder-filter.js';
+import { formatFolderCreatedAt } from './folder-created-at.js';
 
 // DOM 元素
 let foldersList, refreshFoldersBtn;
@@ -147,7 +148,10 @@ function createFolderListItem(folder) {
     return `
         <div class="list-group-item folder-list-item" data-folder-name="${folder.name}">
             <i class="bi bi-folder folder-icon"></i>
-            <span class="folder-name">${folder.name}</span>
+            <div class="folder-content">
+                <span class="folder-name">${folder.name}</span>
+                <small class="folder-created-at text-muted">${formatFolderCreatedAt(folder.createdAt)}</small>
+            </div>
             <div class="folder-actions">
                 <button class="btn btn-sm btn-danger folder-delete-btn" 
                         data-folder-name="${folder.name}"
