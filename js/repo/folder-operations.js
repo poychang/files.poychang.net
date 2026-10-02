@@ -92,9 +92,10 @@ function getCreatedAtTimestamp(createdAt) {
 }
 
 function compareFoldersByCreatedAt(a, b) {
-    const createdAtDiff = getCreatedAtTimestamp(b.createdAt) - getCreatedAtTimestamp(a.createdAt);
-    if (createdAtDiff !== 0) {
-        return createdAtDiff;
+    const timestampA = getCreatedAtTimestamp(a.createdAt);
+    const timestampB = getCreatedAtTimestamp(b.createdAt);
+    if (timestampA !== timestampB) {
+        return timestampB - timestampA;
     }
 
     return a.name.localeCompare(b.name);
