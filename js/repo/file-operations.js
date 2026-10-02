@@ -8,6 +8,7 @@ import {
     deleteRepoFile,
     getRepoContents,
     checkFileExists,
+    getOldestCommitDateByPath,
     translateGitHubError,
     getGitHubErrorDetails,
     isGitHubErrorStatus,
@@ -17,6 +18,9 @@ import { buildUploadPreflightSummary, validateUploadSelection } from './upload-v
 import { API_ERROR_CODES, CONFIG, ERROR_MESSAGES, createLogger } from '../core/index.js';
 
 const logger = createLogger('FileOperations');
+const FILE_CREATED_AT_CONCURRENCY = 3;
+const FILE_CREATED_AT_CACHE_TTL_MS = 5 * 60 * 1000;
+const fileCreatedAtCache = new Map();
 
 // 當前子資料夾
 let currentSubFolder = CONFIG.defaultSubFolder;
@@ -44,6 +48,51 @@ export function getCurrentSubFolder() {
  */
 function getFilePath(filename) {
     return `${CONFIG.fileBasePath}/${currentSubFolder}/${filename}`;
+}
+
+async function mapWithConcurrency(items, mapper, concurrency = FILE_CREATED_AT_CONCURRENCY) {
+    const results = new Array(items.length);
+    let currentIndex = 0;
+
+    async function worker() {
+        while (currentIndex < items.length) {
+            const index = currentIndex;
+            currentIndex += 1;
+            results[index] = await mapper(items[index], index);
+        }
+    }
+
+    const workerCount = Math.max(1, Math.min(concurrency, items.length));
+    await Promise.all(Array.from({ length: workerCount }, () => worker()));
+    return results;
+}
+
+async function resolveFileCreatedAt(filePath) {
+    const cached = fileCreatedAtCache.get(filePath);
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.promise;
+    }
+    fileCreatedAtCache.delete(filePath);
+
+    const createdAtPromise = getOldestCommitDateByPath(filePath)
+        .catch((error) => {
+            if (!isGitHubErrorStatus(error, API_ERROR_CODES.NOT_FOUND)) {
+                throw error;
+            }
+            return null;
+        });
+
+    fileCreatedAtCache.set(filePath, {
+        promise: createdAtPromise,
+        expiresAt: Date.now() + FILE_CREATED_AT_CACHE_TTL_MS,
+    });
+
+    try {
+        return await createdAtPromise;
+    } catch (error) {
+        fileCreatedAtCache.delete(filePath);
+        throw error;
+    }
 }
 
 /**
@@ -191,18 +240,23 @@ export async function listFiles(subFolder) {
     try {
         const data = await getRepoContents(path);
 
-        // 過濾出檔案（排除資料夾與 .gitkeep）
-        const files = data
-            .filter((item) => item.type === 'file' && item.name !== '.gitkeep')
-            .map((file) => ({
-                name: file.name,
-                path: file.path,
-                sha: file.sha,
-                size: file.size,
-                url: getFileUrl(file.name),
-                downloadUrl: file.download_url,
-                type: getFileType(file.name),
-            }));
+        const files = await mapWithConcurrency(
+            data
+                .filter((item) => item.type === 'file' && item.name !== '.gitkeep')
+                .map((file) => ({
+                    name: file.name,
+                    path: file.path,
+                    sha: file.sha,
+                    size: file.size,
+                    url: getFileUrl(file.name),
+                    downloadUrl: file.download_url,
+                    type: getFileType(file.name),
+                })),
+            async (file) => ({
+                ...file,
+                createdAt: await resolveFileCreatedAt(file.path),
+            })
+        );
 
         return files;
     } catch (error) {
@@ -225,6 +279,7 @@ export async function deleteFile(filename, sha) {
 
     try {
         await deleteRepoFile(path, sha, `Delete ${filename}`);
+        fileCreatedAtCache.delete(path);
         return true;
     } catch (error) {
         throw translateGitHubError(error, `刪除檔案「${filename}」`);
@@ -298,6 +353,7 @@ export async function renameFile(oldName, newName, oldSha) {
             sourceSha,
             `Remove ${oldName} after rename to ${trimmedNewName}`,
         );
+        fileCreatedAtCache.delete(oldPath);
     } catch (error) {
         const translated = translateGitHubError(
             error,

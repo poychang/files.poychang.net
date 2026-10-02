@@ -9,6 +9,7 @@ import { showLoading, showEmptyState, showErrorState } from './loading.js';
 import { showDeleteFileModal, showRenameFileModal } from './modal.js';
 import { showImageLightbox } from './lightbox.js';
 import { buildCopyLinkMessage } from './platform-notice.js';
+import { formatFolderCreatedAt } from './folder-created-at.js';
 
 // DOM 元素
 let fileListContainer, fileCountBadge, refreshFilesBtn;
@@ -136,6 +137,7 @@ function createFileItem(file) {
     const iconClass = file.iconClass || 'bi-file-earmark';
     const isImage = file.type === 'image';
     const sizeLabel = file.sizeLabel || '';
+    const createdAtLabel = formatFolderCreatedAt(file.createdAt);
     const escapedName = escapeHtml(file.name);
     const escapedDownloadUrl = escapeHtml(file.downloadUrl);
     const rawOpenUrl = file.url || file.downloadUrl;
@@ -153,7 +155,8 @@ function createFileItem(file) {
                 </div>
                 <div class="file-info">
                     <div class="file-name">${file.name}</div>
-                    <div class="file-size">${sizeLabel}</div>
+                    <div class="file-size text-muted">${sizeLabel}</div>
+                    <div class="file-created-at text-muted">${createdAtLabel}</div>
                 </div>
                 <div class="file-actions ms-auto">
                     <button class="btn btn-sm btn-outline-primary btn-copy-link" 
@@ -326,4 +329,3 @@ export function getFileCountBadge() {
 export function removeDisplayedFile(filename) {
     removeFileListItem(filename);
 }
-
