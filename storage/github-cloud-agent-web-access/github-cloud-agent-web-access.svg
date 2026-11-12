@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="460" viewBox="0 0 560 460" role="img" aria-labelledby="title description" lang="zh-Hant">
+  <title id="title">Cloud agent 讀取外部網頁的三種選擇</title>
+  <desc id="description">依內容需求選擇工具，不是依序執行的步驟。curl 下載 HTML、Markdown 或 JSON；Fetch MCP 將網頁正文轉成 Markdown；Playwright MCP 透過瀏覽器讀取 JavaScript 渲染的內容。</desc>
+  <rect width="560" height="460" rx="16" fill="#f8fafc"/>
+  <g fill="none" stroke="#64748b" stroke-width="2.5">
+    <path d="M56 96V394H100"/>
+    <path d="M56 174H100"/>
+    <path d="M56 284H100"/>
+  </g>
+  <g font-family="'Microsoft JhengHei', 'PingFang TC', sans-serif">
+    <rect x="24" y="20" width="512" height="76" rx="12" fill="#17324d"/>
+    <text x="280" y="52" text-anchor="middle" fill="#ffffff" font-size="25" font-weight="700">Cloud agent 讀取外部網頁</text>
+    <text x="280" y="80" text-anchor="middle" fill="#dbeafe" font-size="22">依內容需求選擇工具</text>
+    <rect x="100" y="128" width="436" height="92" rx="12" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+    <text x="120" y="163" fill="#1e40af" font-size="25" font-weight="700">curl：下載原始內容</text>
+    <text x="120" y="198" fill="#334155" font-size="23">HTML、Markdown、JSON</text>
+    <rect x="100" y="238" width="436" height="92" rx="12" fill="#f0fdf4" stroke="#15803d" stroke-width="2"/>
+    <text x="120" y="273" fill="#166534" font-size="25" font-weight="700">Fetch MCP：擷取文件正文</text>
+    <text x="120" y="308" fill="#334155" font-size="23">將網頁正文轉成 Markdown</text>
+    <rect x="100" y="348" width="436" height="92" rx="12" fill="#faf5ff" stroke="#7e22ce" stroke-width="2"/>
+    <text x="120" y="383" fill="#6b21a8" font-size="25" font-weight="700">Playwright MCP：動態頁面</text>
+    <text x="120" y="418" fill="#334155" font-size="23">透過瀏覽器執行 JavaScript</text>
+  </g>
+</svg>
